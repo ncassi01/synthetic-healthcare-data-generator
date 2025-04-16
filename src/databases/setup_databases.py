@@ -18,6 +18,7 @@ from .graph import Neo4jConnector
 from .vector import PineconeConnector
 from .sync import DatabaseSynchronizer
 from .query import QueryOrchestrator
+from .clinical_db import ClinicalDBManager
 
 # Configure logging
 logging.basicConfig(
@@ -156,6 +157,20 @@ def create_database_schemas(connectors: Dict[str, BaseDBConnector], config: Dict
             logger.error(f"Error creating {db_type} database schema: {e}")
             results[db_type] = False
     
+    # Create Clinical domain schema if relational database is available
+    if 'relational' in connectors and connectors['relational'].is_connected and results.get('relational', False):
+        try:
+            clinical_db_manager = ClinicalDBManager(connectors['relational'])
+            success = clinical_db_manager.create_clinical_schema()
+            results['clinical'] = success
+            if success:
+                logger.info("Created Clinical domain database schema")
+            else:
+                logger.error("Failed to create Clinical domain database schema")
+        except Exception as e:
+            logger.error(f"Error creating Clinical domain database schema: {e}")
+            results['clinical'] = False
+    
     return results
 
 
@@ -197,7 +212,18 @@ def load_sample_data(connectors: Dict[str, BaseDBConnector], data_dir: str) -> D
         'sdoh_assessments.json': {'graph': 'SDOHAssessment'},
         'risk_assessments.json': {'graph': 'RiskAssessment'},
         'provider_network.json': {'graph': 'ProviderNetwork'},
-        'provider_relationships.json': {'graph': 'PROVIDER_RELATIONSHIP'}
+        'provider_relationships.json': {'graph': 'PROVIDER_RELATIONSHIP'},
+        # Clinical domain data files
+        'clinical_encounters.json': {'relational': 'clinical_encounters', 'graph': 'ClinicalEncounter'},
+        'encounter_participants.json': {'relational': 'encounter_participants'},
+        'encounter_locations.json': {'relational': 'encounter_locations'},
+        'encounter_diagnoses.json': {'relational': 'encounter_diagnoses'},
+        'encounter_procedures.json': {'relational': 'encounter_procedures'},
+        'clinical_notes_detailed.json': {'relational': 'clinical_notes', 'document': 'clinical_notes_detailed'},
+        'encounter_services.json': {'relational': 'encounter_services'},
+        'encounter_assessments.json': {'relational': 'encounter_assessments'},
+        'encounter_medications.json': {'relational': 'encounter_medications'},
+        'encounter_transitions.json': {'relational': 'encounter_transitions'}
     }
     
     # Load each file and insert into appropriate databases
@@ -334,6 +360,14 @@ def run_sample_queries(orchestrator: QueryOrchestrator) -> Dict[str, Any]:
         {
             'name': 'semantic_search',
             'parameters': {'query_text': 'diabetes management', 'top_k': 5}
+        },
+        {
+            'name': 'clinical_encounters',
+            'parameters': {'member_id': 'MEM00000001'}
+        },
+        {
+            'name': 'clinical_encounter_details',
+            'parameters': {'encounter_id': 'ENC123456'}
         }
     ]
     

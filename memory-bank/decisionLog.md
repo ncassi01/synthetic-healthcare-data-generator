@@ -203,5 +203,51 @@ We decided to:
 - More realistic and varied clinical documentation
 
 ### Alternatives Considered
+
+
+## 2025-04-16 15:37:00 - Clinical Domain Architecture Decisions
+
+### Decision: Clinical Domain Entity Model
+
+**Context:** Need to design a comprehensive data model for the new Clinical domain that supports various encounter types and the complete patient journey.
+
+**Decision:** Implement a flexible, hierarchical entity model with CLINICAL_ENCOUNTER as the core entity and related entities (participants, locations, diagnoses, procedures, etc.) as nested components.
+
+**Rationale:**
+- Provides a natural representation of healthcare encounters
+- Supports all required encounter types (Inpatient, Ambulatory, Emergency, etc.)
+- Enables modeling of the complete patient journey
+- Facilitates integration with existing domains
+- Supports both relational and document database storage
+
+**Implementation Details:**
+- Core CLINICAL_ENCOUNTER entity with type-specific attributes
+- Related entities for participants, locations, diagnoses, procedures, etc.
+- Bidirectional relationships with existing domains
+- Comprehensive validation rules for data quality
+
+### Decision: Multi-Database Storage Strategy
+
+**Context:** Clinical data has complex relationships and requires different query patterns.
+
+**Decision:** Store Clinical domain data in multiple database types:
+- Relational DB (PostgreSQL): For structured data and relationships
+- Document DB (MongoDB): For clinical notes and complete encounter documents
+- Graph DB (Neo4j): For complex relationships and pathways
+- Vector DB (Pinecone): For semantic search of clinical content
+
+**Rationale:**
+- Different query patterns require different database types
+- Relational DB provides strong consistency and relationships
+- Document DB supports flexible schema and nested structures
+- Graph DB enables complex relationship queries
+- Vector DB supports semantic search of clinical content
+
+**Implementation Details:**
+- Store core structured data in PostgreSQL
+- Store complete encounter documents in MongoDB
+- Store relationship data in Neo4j
+- Store embeddings of clinical notes in Pinecone
+- Implement synchronization between databases
 - **Keeping Separate Generators**: We considered maintaining separate generators but providing better documentation on when to use each. However, this would still result in unnecessary complexity and potential confusion.
 - **Creating Configuration Options**: We considered adding configuration options to control the level of realism and correlation. While this might be added in the future for specific use cases, the default should always be high-quality, realistic data.
