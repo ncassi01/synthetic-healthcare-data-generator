@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADF Viewer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #172B4D;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { font-size: 24px; margin-top: 24px; margin-bottom: 16px; }
+        h2 { font-size: 20px; margin-top: 24px; margin-bottom: 16px; }
+        h3 { font-size: 18px; margin-top: 24px; margin-bottom: 16px; }
+        h4 { font-size: 16px; margin-top: 16px; margin-bottom: 8px; }
+        h5 { font-size: 14px; margin-top: 16px; margin-bottom: 8px; }
+        h6 { font-size: 12px; margin-top: 16px; margin-bottom: 8px; }
+        p { margin-bottom: 16px; }
+        ul, ol { margin-bottom: 16px; padding-left: 24px; }
+        li { margin-bottom: 8px; }
+        pre {
+            background-color: #F4F5F7;
+            border-radius: 3px;
+            padding: 16px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+        code {
+            font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+            background-color: #F4F5F7;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        a {
+            color: #0052CC;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .panel {
+            border-radius: 3px;
+            margin-bottom: 16px;
+            padding: 16px;
+        }
+        .panel-info {
+            background-color: #DEEBFF;
+            border-left: 4px solid #0052CC;
+        }
+        .panel-note {
+            background-color: #EAE6FF;
+            border-left: 4px solid #6554C0;
+        }
+        .panel-success {
+            background-color: #E3FCEF;
+            border-left: 4px solid #00875A;
+        }
+        .panel-warning {
+            background-color: #FFFAE6;
+            border-left: 4px solid #FF8B00;
+        }
+        .panel-error {
+            background-color: #FFEBE6;
+            border-left: 4px solid #DE350B;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 16px;
+        }
+        th, td {
+            border: 1px solid #DFE1E6;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #F4F5F7;
+        }
+        .file-input {
+            margin-bottom: 20px;
+        }
+        #json-input {
+            width: 100%;
+            height: 200px;
+            font-family: monospace;
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #DFE1E6;
+            border-radius: 3px;
+        }
+        button {
+            background-color: #0052CC;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0747A6;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #DFE1E6;
+        }
+        .tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            margin-bottom: -1px;
+        }
+        .tab.active {
+            background-color: white;
+            border-color: #DFE1E6;
+            border-bottom-color: white;
+            border-radius: 3px 3px 0 0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Atlassian Document Format (ADF) Viewer</h1>
+    
+    <div class="tabs">
+        <div class="tab active" data-tab="file">Load from File</div>
+        <div class="tab" data-tab="paste">Paste JSON</div>
+        <div class="tab" data-tab="examples">Examples</div>
+    </div>
+    
+    <div class="tab-content active" id="file-tab">
+        <div class="file-input">
+            <input type="file" id="file-input" accept=".json">
+            <p>Select an ADF JSON file to view</p>
+        </div>
+    </div>
+    
+    <div class="tab-content" id="paste-tab">
+        <textarea id="json-input" placeholder="Paste your ADF JSON here..."></textarea>
+        <button id="render-btn">Render</button>
+    </div>
+    
+    <div class="tab-content" id="examples-tab">
+        <button id="load-example">Load Documentation Example</button>
+        <button id="load-simple-example">Load Simple Example</button>
+    </div>
+    
+    <div id="output"></div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        // File input handling
+        document.getElementById('file-input').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const adfDoc = JSON.parse(e.target.result);
+                        renderADF(adfDoc);
+                    } catch (error) {
+                        showError(`Error parsing JSON: ${error.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // JSON input handling
+        document.getElementById('render-btn').addEventListener('click', () => {
+            const jsonInput = document.getElementById('json-input').value;
+            try {
+                const adfDoc = JSON.parse(jsonInput);
+                renderADF(adfDoc);
+            } catch (error) {
+                showError(`Error parsing JSON: ${error.message}`);
+            }
+        });
+
+        // Example loading
+        document.getElementById('load-example').addEventListener('click', async () => {
+            try {
+                const response = await fetch('adf-documentation.json');
+                const adfDoc = await response.json();
+                renderADF(adfDoc);
+            } catch (error) {
+                showError(`Error loading example: ${error.message}`);
+            }
+        });
+
+        document.getElementById('load-simple-example').addEventListener('click', async () => {
+            try {
+                const response = await fetch('example-adf.json');
+                const adfDoc = await response.json();
+                renderADF(adfDoc);
+            } catch (error) {
+                showError(`Error loading example: ${error.message}`);
+            }
+        });
+
+        function showError(message) {
+            const output = document.getElementById('output');
+            output.innerHTML = `<div class="panel panel-error">${message}</div>`;
+        }
+
+        function renderADF(adfDoc) {
+            if (!adfDoc || !adfDoc.content || !Array.isArray(adfDoc.content)) {
+                showError('Invalid ADF document structure');
+                return;
+            }
+
+            const output = document.getElementById('output');
+            output.innerHTML = '';
+            
+            adfDoc.content.forEach(node => {
+                output.appendChild(renderNode(node));
+            });
+        }
+
+        function renderNode(node) {
+            if (!node || !node.type) {
+                return document.createTextNode('');
+            }
+
+            switch (node.type) {
+                case 'heading':
+                    return renderHeading(node);
+                case 'paragraph':
+                    return renderParagraph(node);
+                case 'text':
+                    return renderText(node);
+                case 'bulletList':
+                    return renderBulletList(node);
+                case 'orderedList':
+                    return renderOrderedList(node);
+                case 'listItem':
+                    return renderListItem(node);
+                case 'codeBlock':
+                    return renderCodeBlock(node);
+                case 'table':
+                    return renderTable(node);
+                case 'tableRow':
+                    return renderTableRow(node);
+                case 'tableCell':
+                case 'tableHeader':
+                    return renderTableCell(node);
+                case 'panel':
+                    return renderPanel(node);
+                case 'mediaGroup':
+                    return renderMediaGroup(node);
+                case 'media':
+                    return renderMedia(node);
+                default:
+                    console.warn(`Unsupported node type: ${node.type}`, node);
+                    return document.createElement('div');
+            }
+        }
+
+        function renderHeading(node) {
+            const level = node.attrs && node.attrs.level ? node.attrs.level : 1;
+            const heading = document.createElement(`h${level}`);
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    heading.appendChild(renderNode(child));
+                });
+            }
+            
+            return heading;
+        }
+
+        function renderParagraph(node) {
+            const paragraph = document.createElement('p');
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    paragraph.appendChild(renderNode(child));
+                });
+            }
+            
+            return paragraph;
+        }
+
+        function renderText(node) {
+            if (!node.text) {
+                return document.createTextNode('');
+            }
+            
+            if (!node.marks || !Array.isArray(node.marks) || node.marks.length === 0) {
+                return document.createTextNode(node.text);
+            }
+            
+            let element = document.createTextNode(node.text);
+            
+            node.marks.forEach(mark => {
+                const wrapper = document.createElement('span');
+                
+                switch (mark.type) {
+                    case 'strong':
+                        wrapper.style.fontWeight = 'bold';
+                        break;
+                    case 'em':
+                        wrapper.style.fontStyle = 'italic';
+                        break;
+                    case 'code':
+                        const code = document.createElement('code');
+                        code.textContent = element.textContent;
+                        return code;
+                    case 'underline':
+                        wrapper.style.textDecoration = 'underline';
+                        break;
+                    case 'strike':
+                        wrapper.style.textDecoration = 'line-through';
+                        break;
+                    case 'link':
+                        const link = document.createElement('a');
+                        link.href = mark.attrs && mark.attrs.href ? mark.attrs.href : '#';
+                        link.textContent = element.textContent;
+                        return link;
+                    default:
+                        console.warn(`Unsupported mark type: ${mark.type}`, mark);
+                }
+                
+                wrapper.appendChild(element);
+                element = wrapper;
+            });
+            
+            return element;
+        }
+
+        function renderBulletList(node) {
+            const list = document.createElement('ul');
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    list.appendChild(renderNode(child));
+                });
+            }
+            
+            return list;
+        }
+
+        function renderOrderedList(node) {
+            const list = document.createElement('ol');
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    list.appendChild(renderNode(child));
+                });
+            }
+            
+            return list;
+        }
+
+        function renderListItem(node) {
+            const item = document.createElement('li');
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    item.appendChild(renderNode(child));
+                });
+            }
+            
+            return item;
+        }
+
+        function renderCodeBlock(node) {
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            
+            if (node.attrs && node.attrs.language) {
+                code.className = `language-${node.attrs.language}`;
+            }
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    if (child.type === 'text') {
+                        code.textContent = child.text;
+                    } else {
+                        code.appendChild(renderNode(child));
+                    }
+                });
+            }
+            
+            pre.appendChild(code);
+            return pre;
+        }
+
+        function renderTable(node) {
+            const table = document.createElement('table');
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    table.appendChild(renderNode(child));
+                });
+            }
+            
+            return table;
+        }
+
+        function renderTableRow(node) {
+            const row = document.createElement('tr');
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    row.appendChild(renderNode(child));
+                });
+            }
+            
+            return row;
+        }
+
+        function renderTableCell(node) {
+            const isHeader = node.type === 'tableHeader';
+            const cell = document.createElement(isHeader ? 'th' : 'td');
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    cell.appendChild(renderNode(child));
+                });
+            }
+            
+            return cell;
+        }
+
+        function renderPanel(node) {
+            const panel = document.createElement('div');
+            panel.className = 'panel';
+            
+            if (node.attrs && node.attrs.panelType) {
+                panel.classList.add(`panel-${node.attrs.panelType}`);
+            }
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    panel.appendChild(renderNode(child));
+                });
+            }
+            
+            return panel;
+        }
+
+        function renderMediaGroup(node) {
+            const mediaGroup = document.createElement('div');
+            mediaGroup.className = 'media-group';
+            
+            if (node.content && Array.isArray(node.content)) {
+                node.content.forEach(child => {
+                    mediaGroup.appendChild(renderNode(child));
+                });
+            }
+            
+            return mediaGroup;
+        }
+
+        function renderMedia(node) {
+            const media = document.createElement('div');
+            media.className = 'media';
+            
+            if (node.attrs) {
+                const placeholder = document.createElement('div');
+                placeholder.style.backgroundColor = '#F4F5F7';
+                placeholder.style.border = '1px solid #DFE1E6';
+                placeholder.style.borderRadius = '3px';
+                placeholder.style.padding = '16px';
+                placeholder.style.textAlign = 'center';
+                
+                const width = node.attrs.width || 300;
+                const height = node.attrs.height || 200;
+                
+                placeholder.style.width = `${width}px`;
+                placeholder.style.height = `${height}px`;
+                placeholder.style.maxWidth = '100%';
+                placeholder.style.display = 'flex';
+                placeholder.style.alignItems = 'center';
+                placeholder.style.justifyContent = 'center';
+                
+                placeholder.textContent = `Media: ${node.attrs.id || 'Unknown'}`;
+                
+                media.appendChild(placeholder);
+            }
+            
+            return media;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,910 @@
+{
+  "version": 1,
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 1
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Atlassian Document Format (ADF) Guide"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "This document provides a comprehensive guide to creating documentation using the Atlassian Document Format (ADF)."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "What is ADF?"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "ADF is a JSON-based format used by Atlassian products like Confluence and Jira for rich text content. It provides a structured way to represent formatted text, lists, tables, code blocks, and other rich content elements."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Basic Structure"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "An ADF document has the following basic structure:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"version\": 1,\n  \"type\": \"doc\",\n  \"content\": [\n    // Content nodes go here\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "The "
+        },
+        {
+          "type": "text",
+          "text": "content",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " array contains all the document's content nodes, which can be headings, paragraphs, lists, tables, etc."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Common Elements"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Headings"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Headings are defined with a level attribute (1-6):"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"heading\",\n  \"attrs\": {\n    \"level\": 1\n  },\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"Heading Text\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Paragraphs"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Paragraphs are the basic text blocks:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"paragraph\",\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"This is a paragraph.\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Text Formatting"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Text can be formatted using "
+        },
+        {
+          "type": "text",
+          "text": "marks",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ":"
+        }
+      ]
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Bold: ",
+                  "marks": [
+                    {
+                      "type": "strong"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Use the "
+                },
+                {
+                  "type": "text",
+                  "text": "strong",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " mark type"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Italic: ",
+                  "marks": [
+                    {
+                      "type": "em"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Use the "
+                },
+                {
+                  "type": "text",
+                  "text": "em",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " mark type"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Code: ",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Use the "
+                },
+                {
+                  "type": "text",
+                  "text": "code",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " mark type"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Underline: ",
+                  "marks": [
+                    {
+                      "type": "underline"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Use the "
+                },
+                {
+                  "type": "text",
+                  "text": "underline",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " mark type"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Strike-through: ",
+                  "marks": [
+                    {
+                      "type": "strike"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": "Use the "
+                },
+                {
+                  "type": "text",
+                  "text": "strike",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " mark type"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"text\",\n  \"text\": \"Bold text\",\n  \"marks\": [\n    {\n      \"type\": \"strong\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Lists"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "ADF supports both bullet lists and ordered lists:"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Bullet Lists"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"bulletList\",\n  \"content\": [\n    {\n      \"type\": \"listItem\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"First bullet point\"\n            }\n          ]\n        }\n      ]\n    },\n    {\n      \"type\": \"listItem\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Second bullet point\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 4
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Ordered Lists"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"orderedList\",\n  \"content\": [\n    {\n      \"type\": \"listItem\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"First item\"\n            }\n          ]\n        }\n      ]\n    },\n    {\n      \"type\": \"listItem\",\n      \"content\": [\n        {\n          \"type\": \"paragraph\",\n          \"content\": [\n            {\n              \"type\": \"text\",\n              \"text\": \"Second item\"\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Code Blocks"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Code blocks can include syntax highlighting by specifying the language:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"codeBlock\",\n  \"attrs\": {\n    \"language\": \"javascript\"\n  },\n  \"content\": [\n    {\n      \"type\": \"text\",\n      \"text\": \"console.log('Hello, ADF!');\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Tables"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Tables are structured with tableRow and tableCell elements:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"table\",\n  \"attrs\": {\n    \"isNumberColumnEnabled\": false,\n    \"layout\": \"default\"\n  },\n  \"content\": [\n    {\n      \"type\": \"tableRow\",\n      \"content\": [\n        {\n          \"type\": \"tableHeader\",\n          \"attrs\": {},\n          \"content\": [\n            {\n              \"type\": \"paragraph\",\n              \"content\": [\n                {\n                  \"type\": \"text\",\n                  \"text\": \"Header 1\"\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"type\": \"tableHeader\",\n          \"attrs\": {},\n          \"content\": [\n            {\n              \"type\": \"paragraph\",\n              \"content\": [\n                {\n                  \"type\": \"text\",\n                  \"text\": \"Header 2\"\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    },\n    {\n      \"type\": \"tableRow\",\n      \"content\": [\n        {\n          \"type\": \"tableCell\",\n          \"attrs\": {},\n          \"content\": [\n            {\n              \"type\": \"paragraph\",\n              \"content\": [\n                {\n                  \"type\": \"text\",\n                  \"text\": \"Cell 1\"\n                }\n              ]\n            }\n          ]\n        },\n        {\n          \"type\": \"tableCell\",\n          \"attrs\": {},\n          \"content\": [\n            {\n              \"type\": \"paragraph\",\n              \"content\": [\n                {\n                  \"type\": \"text\",\n                  \"text\": \"Cell 2\"\n                }\n              ]\n            }\n          ]\n        }\n      ]\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Links"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Links are created using the "
+        },
+        {
+          "type": "text",
+          "text": "link",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " mark type:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"text\",\n  \"text\": \"Atlassian\",\n  \"marks\": [\n    {\n      \"type\": \"link\",\n      \"attrs\": {\n        \"href\": \"https://atlassian.com\"\n      }\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Panel"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Panels are used to highlight information with different styles:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"panel\",\n  \"attrs\": {\n    \"panelType\": \"info\"\n  },\n  \"content\": [\n    {\n      \"type\": \"paragraph\",\n      \"content\": [\n        {\n          \"type\": \"text\",\n          \"text\": \"This is an info panel.\"\n        }\n      ]\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Panel types include: "
+        },
+        {
+          "type": "text",
+          "text": "info",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "text",
+          "text": "note",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "text",
+          "text": "success",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", "
+        },
+        {
+          "type": "text",
+          "text": "warning",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": ", and "
+        },
+        {
+          "type": "text",
+          "text": "error",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Best Practices"
+        }
+      ]
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Use proper nesting: Each content node should be properly nested according to the ADF schema."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Validate your ADF: Use the Atlassian ADF validator to ensure your document is valid."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Keep it simple: Start with basic elements and gradually add complexity as needed."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": "Use tools: Consider using the Atlassian Editor or libraries like "
+                },
+                {
+                  "type": "text",
+                  "text": "prosemirror-model",
+                  "marks": [
+                    {
+                      "type": "code"
+                    }
+                  ]
+                },
+                {
+                  "type": "text",
+                  "text": " to generate ADF instead of writing it manually."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Advanced Features"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Macros"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "ADF supports various macros for embedding content like Jira issues, Confluence pages, or external content:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"extension\",\n  \"attrs\": {\n    \"extensionType\": \"com.atlassian.confluence.macro.core\",\n    \"extensionKey\": \"jira\",\n    \"parameters\": {\n      \"server\": \"JIRA\",\n      \"serverId\": \"1234567890\",\n      \"key\": \"PROJECT-123\"\n    }\n  }\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 3
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Media"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "Images and other media can be embedded using the mediaGroup and media nodes:"
+        }
+      ]
+    },
+    {
+      "type": "codeBlock",
+      "attrs": {
+        "language": "json"
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "{\n  \"type\": \"mediaGroup\",\n  \"content\": [\n    {\n      \"type\": \"media\",\n      \"attrs\": {\n        \"id\": \"1234567890\",\n        \"type\": \"file\",\n        \"collection\": \"MediaServicesSample\",\n        \"width\": 500,\n        \"height\": 300\n      }\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "type": "heading",
+      "attrs": {
+        "level": 2
+      },
+      "content": [
+        {
+          "type": "text",
+          "text": "Conclusion"
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "ADF provides a powerful and flexible way to create rich, structured content for Atlassian products. By understanding the basic structure and common elements, you can create comprehensive documentation that includes formatted text, lists, tables, code blocks, and more."
+        }
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": [
+        {
+          "type": "text",
+          "text": "For more information, refer to the "
+        },
+        {
+          "type": "text",
+          "text": "official Atlassian Document Format documentation",
+          "marks": [
+            {
+              "type": "link",
+              "attrs": {
+                "href": "https://developer.atlassian.com/cloud/jira/platform/apis/document/structure/"
+              }
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
+      ]
+    }
+  ]
+}
