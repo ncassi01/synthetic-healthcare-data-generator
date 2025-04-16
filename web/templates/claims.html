@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Claims - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Claims</h1>
+        <p class="lead">
+            View and explore synthetic claim data. Click on a claim ID to view detailed information.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Claim List</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="claims-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Member ID</th>
+                                <th>Service Date</th>
+                                <th>Provider</th>
+                                <th>Service</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- DataTables will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Claim Detail Modal -->
+<div class="modal fade" id="claimDetailModal" tabindex="-1" aria-labelledby="claimDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="claimDetailModalLabel">Claim Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="claim-detail-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading claim details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="view-member-profile" class="btn btn-primary">View Member Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Hardcoded columns array to match the HTML table structure
+        const columns = [
+            { // Claim ID
+                data: 'id',
+                defaultContent: 'N/A'
+            },
+            { // Member ID
+                data: 'member_id',
+                render: function(data) {
+                    return data ? `<a href="/member/${data}">${data}</a>` : 'N/A';
+                }
+            },
+            { // Service Date
+                data: 'date_of_service',
+                render: function(data) {
+                    return formatDate(data);
+                }
+            },
+            { // Provider
+                data: 'provider_id',
+                defaultContent: 'N/A'
+            },
+            { // Service
+                data: null,
+                render: function(data) {
+                    if (data && data.service_lines && data.service_lines.length > 0) {
+                        return data.service_lines[0].description || 'N/A';
+                    }
+                    return 'N/A';
+                }
+            },
+            { // Total Amount
+                data: 'total_charge',
+                render: function(data) {
+                    return formatCurrency(data);
+                }
+            },
+            { // Status
+                data: 'status',
+                render: function(data) {
+                    return formatStatusBadge(data, 'claim');
+                }
+            },
+            { // Actions
+                data: null,
+                render: function(data) {
+                    if (!data || !data.id) return 'N/A';
+                    return `<button class="btn btn-sm btn-primary view-claim" data-id="${data.id}">
+                                <i class="fas fa-eye"></i> View
+                            </button>`;
+                }
+            }
+        ];
+        
+        // Debug: Log the column count
+        console.log(`Table has ${$('#claims-table thead th').length} columns in HTML`);
+        console.log(`Columns array has ${columns.length} columns`);
+        
+        // Initialize DataTable with hardcoded columns
+        const claimsTable = $('#claims-table').DataTable({
+            processing: true,
+            pageLength: 25,
+            autoWidth: false,
+            responsive: true,
+            columns: columns
+        });
+        
+        // Load claim data
+        $.getJSON('/api/claims', function(data) {
+            claimsTable.clear();
+            claimsTable.rows.add(data).draw();
+        });
+        
+        // Handle claim detail view
+        $('#claims-table').on('click', '.view-claim', function() {
+            const claimId = $(this).data('id');
+            loadClaimDetails(claimId);
+        });
+        
+        // Check if claim ID is in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const claimId = urlParams.get('id');
+        if (claimId) {
+            loadClaimDetails(claimId);
+        }
+        
+        function loadClaimDetails(claimId) {
+            // Show modal
+            $('#claimDetailModal').modal('show');
+            
+            // Load claim details
+            $.getJSON(`/api/claims/${claimId}`, function(claim) {
+                renderClaimDetails(claim);
+                
+                // Update member profile link
+                $('#view-member-profile').attr('href', `/member/${claim.member_id}`);
+            }).fail(function() {
+                $('#claim-detail-content').html(`
+                    <div class="alert alert-danger">
+                        Failed to load claim details. Please try again.
+                    </div>
+                `);
+            });
+        }
+        
+        function renderClaimDetails(claim) {
+            let html = `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Claim Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Claim ID:</th>
+                                        <td>${claim.id}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Member ID:</th>
+                                        <td><a href="/member/${claim.member_id}">${claim.member_id}</a></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Service Date:</th>
+                                        <td>${formatDate(claim.date_of_service)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Provider:</th>
+                                        <td>${claim.provider_name || 'N/A'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Service:</th>
+                                        <td>${claim.service_description || 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Amount:</th>
+                                        <td>${formatCurrency(claim.total_charge)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td>${formatStatusBadge(claim.status, 'claim')}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Submission Date:</th>
+                                        <td>${formatDate(claim.date_received)}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Line Items (if available)
+            if (claim.service_lines && claim.service_lines.length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Line Items</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Code</th>
+                                            <th>Description</th>
+                                            <th>Quantity</th>
+                                            <th>Unit Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                claim.service_lines.forEach(item => {
+                    html += `
+                        <tr>
+                            <td>${item.code || 'N/A'}</td>
+                            <td>${item.description || 'N/A'}</td>
+                            <td>${item.quantity || 1}</td>
+                            <td>${formatCurrency(item.unit_price)}</td>
+                            <td>${formatCurrency(item.total_price || (item.unit_price * item.quantity))}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Diagnosis Codes (if available)
+            if (claim.diagnosis_codes && claim.diagnosis_codes.length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Diagnosis Codes</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                claim.diagnosis_codes.forEach(code => {
+                    html += `
+                        <div class="col-md-4 mb-2">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <strong>${code.code}</strong>: ${code.description || 'No description available'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Procedure Codes (if available)
+            if (claim.procedure_codes && claim.procedure_codes.length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Procedure Codes</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                claim.procedure_codes.forEach(code => {
+                    html += `
+                        <div class="col-md-4 mb-2">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <strong>${code.code}</strong>: ${code.description || 'No description available'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Notes (if available)
+            if (claim.notes) {
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Notes</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>${claim.notes}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            $('#claim-detail-content').html(html);
+            $('#claimDetailModalLabel').text(`Claim Details: ${claim.id}`);
+        }
+    });
+</script>
+{% endblock %}

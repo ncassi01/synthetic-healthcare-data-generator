@@ -1,0 +1,635 @@
+{% extends "base.html" %}
+
+{% block title %}Provider Network - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Provider Network</h1>
+        <p class="lead">
+            This page displays the provider network, including providers, facilities, and their relationships.
+        </p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Providers</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="providers-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Specialty</th>
+                                <th>Network Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Facilities</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="facilities-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Location</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Network Relationships</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="relationships-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Source</th>
+                                <th>Target</th>
+                                <th>Type</th>
+                                <th>Strength</th>
+                                <th>Start Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Provider Details Modal -->
+<div class="modal fade" id="providerDetailsModal" tabindex="-1" aria-labelledby="providerDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="providerDetailsModalLabel">Provider Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Provider Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>ID:</th>
+                                <td id="provider-id"></td>
+                            </tr>
+                            <tr>
+                                <th>NPI:</th>
+                                <td id="provider-npi"></td>
+                            </tr>
+                            <tr>
+                                <th>Name:</th>
+                                <td id="provider-name"></td>
+                            </tr>
+                            <tr>
+                                <th>Credentials:</th>
+                                <td id="provider-credentials"></td>
+                            </tr>
+                            <tr>
+                                <th>Specialty:</th>
+                                <td id="provider-specialty"></td>
+                            </tr>
+                            <tr>
+                                <th>Subspecialty:</th>
+                                <td id="provider-subspecialty"></td>
+                            </tr>
+                            <tr>
+                                <th>Gender:</th>
+                                <td id="provider-gender"></td>
+                            </tr>
+                            <tr>
+                                <th>Network Status:</th>
+                                <td id="provider-network-status"></td>
+                            </tr>
+                            <tr>
+                                <th>Accepting New Patients:</th>
+                                <td id="provider-accepting"></td>
+                            </tr>
+                            <tr>
+                                <th>Languages:</th>
+                                <td id="provider-languages"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Contact Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Phone:</th>
+                                <td id="provider-phone"></td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td id="provider-email"></td>
+                            </tr>
+                            <tr>
+                                <th>Fax:</th>
+                                <td id="provider-fax"></td>
+                            </tr>
+                        </table>
+                        
+                        <h6 class="mt-4">Practice Locations</h6>
+                        <div id="provider-locations">
+                            <!-- Locations will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Affiliations</h6>
+                        <table class="table table-sm table-striped" id="provider-affiliations-table">
+                            <thead>
+                                <tr>
+                                    <th>Organization</th>
+                                    <th>Type</th>
+                                    <th>Start Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="provider-affiliations-body">
+                                <!-- Affiliations will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Facility Details Modal -->
+<div class="modal fade" id="facilityDetailsModal" tabindex="-1" aria-labelledby="facilityDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="facilityDetailsModalLabel">Facility Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Facility Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>ID:</th>
+                                <td id="facility-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Name:</th>
+                                <td id="facility-name"></td>
+                            </tr>
+                            <tr>
+                                <th>Type:</th>
+                                <td id="facility-type"></td>
+                            </tr>
+                            <tr>
+                                <th>Network Status:</th>
+                                <td id="facility-network-status"></td>
+                            </tr>
+                            <tr>
+                                <th>Address:</th>
+                                <td id="facility-address"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Contact Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Phone:</th>
+                                <td id="facility-phone"></td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td id="facility-email"></td>
+                            </tr>
+                            <tr>
+                                <th>Website:</th>
+                                <td id="facility-website"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Specialties</h6>
+                        <div id="facility-specialties">
+                            <!-- Specialties will be loaded dynamically -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Services</h6>
+                        <div id="facility-services">
+                            <!-- Services will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Accreditations</h6>
+                        <table class="table table-sm table-striped" id="facility-accreditations-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facility-accreditations-body">
+                                <!-- Accreditations will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Affiliated Providers</h6>
+                        <table class="table table-sm table-striped" id="facility-providers-table">
+                            <thead>
+                                <tr>
+                                    <th>Provider ID</th>
+                                    <th>Name</th>
+                                    <th>Specialty</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="facility-providers-body">
+                                <!-- Affiliated providers will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Load provider network data
+        $.getJSON('/api/provider-network', function(data) {
+            // Initialize providers table
+            if (data.providers && data.providers.length > 0) {
+                const providersTable = $('#providers-table').DataTable({
+                    data: data.providers,
+                    columns: [
+                        { data: 'id' },
+                        { 
+                            data: null,
+                            render: function(data) {
+                                return `${data.first_name || ''} ${data.last_name || ''} ${data.credentials || ''}`.trim();
+                            }
+                        },
+                        { data: 'specialty' },
+                        { 
+                            data: 'network_status',
+                            render: function(data) {
+                                let badgeClass = 'bg-secondary';
+                                if (data === 'in-network') badgeClass = 'bg-success';
+                                else if (data === 'out-of-network') badgeClass = 'bg-danger';
+                                return `<span class="badge ${badgeClass}">${data || 'Unknown'}</span>`;
+                            }
+                        },
+                        {
+                            data: null,
+                            render: function(data) {
+                                return `<button class="btn btn-sm btn-primary view-provider" data-id="${data.id}">View</button>`;
+                            }
+                        }
+                    ],
+                    order: [[1, 'asc']] // Sort by name ascending
+                });
+                
+                // Handle provider view button click
+                $('#providers-table').on('click', '.view-provider', function() {
+                    const providerId = $(this).data('id');
+                    const provider = data.providers.find(p => p.id === providerId);
+                    
+                    if (provider) {
+                        // Populate modal with provider details
+                        $('#provider-id').text(provider.id);
+                        $('#provider-npi').text(provider.npi || 'N/A');
+                        $('#provider-name').text(`${provider.first_name || ''} ${provider.last_name || ''} ${provider.credentials || ''}`.trim());
+                        $('#provider-credentials').text(provider.credentials || 'N/A');
+                        $('#provider-specialty').text(provider.specialty || 'N/A');
+                        $('#provider-subspecialty').text(provider.subspecialty || 'N/A');
+                        $('#provider-gender').text(provider.gender || 'N/A');
+                        
+                        // Set network status with badge
+                        let statusBadgeClass = 'bg-secondary';
+                        if (provider.network_status === 'in-network') statusBadgeClass = 'bg-success';
+                        else if (provider.network_status === 'out-of-network') statusBadgeClass = 'bg-danger';
+                        $('#provider-network-status').html(`<span class="badge ${statusBadgeClass}">${provider.network_status || 'Unknown'}</span>`);
+                        
+                        $('#provider-accepting').text(provider.accepting_new_patients ? 'Yes' : 'No');
+                        $('#provider-languages').text(provider.languages ? provider.languages.join(', ') : 'N/A');
+                        
+                        // Contact information
+                        if (provider.contact_info) {
+                            $('#provider-phone').text(provider.contact_info.phone || 'N/A');
+                            $('#provider-email').text(provider.contact_info.email || 'N/A');
+                            $('#provider-fax').text(provider.contact_info.fax || 'N/A');
+                        } else {
+                            $('#provider-phone, #provider-email, #provider-fax').text('N/A');
+                        }
+                        
+                        // Practice locations
+                        if (provider.practice_locations && provider.practice_locations.length > 0) {
+                            let locationsHtml = '<div class="list-group">';
+                            provider.practice_locations.forEach(location => {
+                                const isPrimary = location.primary ? '<span class="badge bg-primary ms-2">Primary</span>' : '';
+                                locationsHtml += `
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">${location.facility_name || 'Unknown Facility'}${isPrimary}</h6>
+                                        </div>
+                                        <p class="mb-1">
+                                            ${location.address ? `${location.address.street}, ${location.address.city}, ${location.address.state} ${location.address.zip_code}` : 'No address available'}
+                                        </p>
+                                    </div>
+                                `;
+                            });
+                            locationsHtml += '</div>';
+                            $('#provider-locations').html(locationsHtml);
+                        } else {
+                            $('#provider-locations').html('<p class="text-muted">No practice locations available.</p>');
+                        }
+                        
+                        // Affiliations
+                        if (provider.affiliations && provider.affiliations.length > 0) {
+                            let affiliationsHtml = '';
+                            provider.affiliations.forEach(affiliation => {
+                                affiliationsHtml += `
+                                    <tr>
+                                        <td>${affiliation.organization_id || 'N/A'}</td>
+                                        <td>${affiliation.type || 'N/A'}</td>
+                                        <td>${affiliation.start_date ? new Date(affiliation.start_date).toLocaleDateString() : 'N/A'}</td>
+                                    </tr>
+                                `;
+                            });
+                            $('#provider-affiliations-body').html(affiliationsHtml);
+                        } else {
+                            $('#provider-affiliations-body').html('<tr><td colspan="3" class="text-center">No affiliations available.</td></tr>');
+                        }
+                        
+                        // Show the modal
+                        $('#providerDetailsModal').modal('show');
+                    }
+                });
+            } else {
+                $('#providers-table').closest('.card').html('<div class="card-body"><div class="alert alert-info">No providers available.</div></div>');
+            }
+            
+            // Initialize facilities table
+            if (data.facilities && data.facilities.length > 0) {
+                const facilitiesTable = $('#facilities-table').DataTable({
+                    data: data.facilities,
+                    columns: [
+                        { data: 'id' },
+                        { data: 'name' },
+                        { data: 'type' },
+                        { 
+                            data: 'address',
+                            render: function(data) {
+                                return data ? `${data.city}, ${data.state}` : 'N/A';
+                            }
+                        },
+                        {
+                            data: null,
+                            render: function(data) {
+                                return `<button class="btn btn-sm btn-primary view-facility" data-id="${data.id}">View</button>`;
+                            }
+                        }
+                    ],
+                    order: [[1, 'asc']] // Sort by name ascending
+                });
+                
+                // Handle facility view button click
+                $('#facilities-table').on('click', '.view-facility', function() {
+                    const facilityId = $(this).data('id');
+                    const facility = data.facilities.find(f => f.id === facilityId);
+                    
+                    if (facility) {
+                        // Populate modal with facility details
+                        $('#facility-id').text(facility.id);
+                        $('#facility-name').text(facility.name || 'N/A');
+                        $('#facility-type').text(facility.type || 'N/A');
+                        
+                        // Set network status with badge
+                        let statusBadgeClass = 'bg-secondary';
+                        if (facility.network_status === 'in-network') statusBadgeClass = 'bg-success';
+                        else if (facility.network_status === 'out-of-network') statusBadgeClass = 'bg-danger';
+                        $('#facility-network-status').html(`<span class="badge ${statusBadgeClass}">${facility.network_status || 'Unknown'}</span>`);
+                        
+                        // Address
+                        if (facility.address) {
+                            $('#facility-address').text(`${facility.address.street}, ${facility.address.city}, ${facility.address.state} ${facility.address.zip_code}`);
+                        } else {
+                            $('#facility-address').text('N/A');
+                        }
+                        
+                        // Contact information
+                        if (facility.contact_info) {
+                            $('#facility-phone').text(facility.contact_info.phone || 'N/A');
+                            $('#facility-email').text(facility.contact_info.email || 'N/A');
+                            $('#facility-website').html(facility.contact_info.website ? `<a href="${facility.contact_info.website}" target="_blank">${facility.contact_info.website}</a>` : 'N/A');
+                        } else {
+                            $('#facility-phone, #facility-email, #facility-website').text('N/A');
+                        }
+                        
+                        // Specialties
+                        if (facility.specialties && facility.specialties.length > 0) {
+                            let specialtiesHtml = '<div class="list-group">';
+                            facility.specialties.forEach(specialty => {
+                                specialtiesHtml += `<div class="list-group-item">${specialty}</div>`;
+                            });
+                            specialtiesHtml += '</div>';
+                            $('#facility-specialties').html(specialtiesHtml);
+                        } else {
+                            $('#facility-specialties').html('<p class="text-muted">No specialties available.</p>');
+                        }
+                        
+                        // Services
+                        if (facility.services && facility.services.length > 0) {
+                            let servicesHtml = '<div class="list-group">';
+                            facility.services.forEach(service => {
+                                servicesHtml += `<div class="list-group-item">${service}</div>`;
+                            });
+                            servicesHtml += '</div>';
+                            $('#facility-services').html(servicesHtml);
+                        } else {
+                            $('#facility-services').html('<p class="text-muted">No services available.</p>');
+                        }
+                        
+                        // Accreditations
+                        if (facility.accreditations && facility.accreditations.length > 0) {
+                            let accreditationsHtml = '';
+                            facility.accreditations.forEach(accreditation => {
+                                accreditationsHtml += `
+                                    <tr>
+                                        <td>${accreditation.name || 'N/A'}</td>
+                                        <td>${accreditation.date ? new Date(accreditation.date).toLocaleDateString() : 'N/A'}</td>
+                                    </tr>
+                                `;
+                            });
+                            $('#facility-accreditations-body').html(accreditationsHtml);
+                        } else {
+                            $('#facility-accreditations-body').html('<tr><td colspan="2" class="text-center">No accreditations available.</td></tr>');
+                        }
+                        
+                        // Affiliated providers
+                        if (facility.affiliated_providers && facility.affiliated_providers.length > 0) {
+                            let providersHtml = '';
+                            facility.affiliated_providers.forEach(provider => {
+                                // Find the provider details
+                                const providerDetails = data.providers.find(p => p.id === provider.provider_id);
+                                const providerName = providerDetails ? `${providerDetails.first_name || ''} ${providerDetails.last_name || ''} ${providerDetails.credentials || ''}`.trim() : 'Unknown';
+                                const providerSpecialty = providerDetails ? providerDetails.specialty : 'N/A';
+                                
+                                providersHtml += `
+                                    <tr>
+                                        <td>${provider.provider_id || 'N/A'}</td>
+                                        <td>${providerName}</td>
+                                        <td>${providerSpecialty}</td>
+                                        <td>${provider.type || 'N/A'}</td>
+                                    </tr>
+                                `;
+                            });
+                            $('#facility-providers-body').html(providersHtml);
+                        } else {
+                            $('#facility-providers-body').html('<tr><td colspan="4" class="text-center">No affiliated providers available.</td></tr>');
+                        }
+                        
+                        // Show the modal
+                        $('#facilityDetailsModal').modal('show');
+                    }
+                });
+            } else {
+                $('#facilities-table').closest('.card').html('<div class="card-body"><div class="alert alert-info">No facilities available.</div></div>');
+            }
+            
+            // Initialize relationships table
+            if (data.relationships && data.relationships.length > 0) {
+                const relationshipsTable = $('#relationships-table').DataTable({
+                    data: data.relationships,
+                    columns: [
+                        { data: 'id' },
+                        { 
+                            data: 'source_id',
+                            render: function(data) {
+                                // Find the source entity (provider or facility)
+                                const provider = data.providers ? data.providers.find(p => p.id === data) : null;
+                                const facility = data.facilities ? data.facilities.find(f => f.id === data) : null;
+                                
+                                if (provider) {
+                                    return `${provider.first_name || ''} ${provider.last_name || ''} (${data})`;
+                                } else if (facility) {
+                                    return `${facility.name} (${data})`;
+                                } else {
+                                    return data;
+                                }
+                            }
+                        },
+                        { 
+                            data: 'target_id',
+                            render: function(data) {
+                                // Find the target entity (provider or facility)
+                                const provider = data.providers ? data.providers.find(p => p.id === data) : null;
+                                const facility = data.facilities ? data.facilities.find(f => f.id === data) : null;
+                                
+                                if (provider) {
+                                    return `${provider.first_name || ''} ${provider.last_name || ''} (${data})`;
+                                } else if (facility) {
+                                    return `${facility.name} (${data})`;
+                                } else {
+                                    return data;
+                                }
+                            }
+                        },
+                        { data: 'relationship_type' },
+                        { 
+                            data: 'strength',
+                            render: function(data) {
+                                if (data === undefined || data === null) return 'N/A';
+                                
+                                // Create a progress bar to visualize the strength
+                                let barClass = 'bg-info';
+                                if (data < 0.3) barClass = 'bg-danger';
+                                else if (data < 0.7) barClass = 'bg-warning';
+                                else barClass = 'bg-success';
+                                
+                                const percentage = Math.round(data * 100);
+                                return `
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar ${barClass}" role="progressbar" style="width: ${percentage}%;" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100">${percentage}%</div>
+                                    </div>
+                                `;
+                            }
+                        },
+                        { 
+                            data: 'start_date',
+                            render: function(data) {
+                                return data ? new Date(data).toLocaleDateString() : 'N/A';
+                            }
+                        }
+                    ],
+                    order: [[5, 'desc']] // Sort by start date descending
+                });
+            } else {
+                $('#relationships-table').closest('.card').html('<div class="card-body"><div class="alert alert-info">No relationships available.</div></div>');
+            }
+        }).fail(function() {
+            $('.card').html('<div class="card-body"><div class="alert alert-danger">Failed to load provider network data.</div></div>');
+        });
+    });
+</script>
+{% endblock %}

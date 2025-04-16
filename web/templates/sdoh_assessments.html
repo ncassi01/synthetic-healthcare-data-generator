@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}SDOH Assessments - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Social Determinants of Health (SDOH) Assessments</h1>
+        <p class="lead">
+            This page displays SDOH assessments, which evaluate social factors that impact a member's health.
+        </p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">SDOH Assessments</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="sdoh-assessments-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Member ID</th>
+                                <th>Assessment Date</th>
+                                <th>Provider ID</th>
+                                <th>Overall Risk Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SDOH Assessment Details Modal -->
+<div class="modal fade" id="sdohDetailsModal" tabindex="-1" aria-labelledby="sdohDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sdohDetailsModalLabel">SDOH Assessment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Assessment Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>ID:</th>
+                                <td id="assessment-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Member ID:</th>
+                                <td id="assessment-member-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Assessment Date:</th>
+                                <td id="assessment-date"></td>
+                            </tr>
+                            <tr>
+                                <th>Provider ID:</th>
+                                <td id="assessment-provider-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Overall Risk Level:</th>
+                                <td id="assessment-risk-level"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Domain Scores</h6>
+                        <div id="domain-scores-chart-container">
+                            <canvas id="domain-scores-chart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Domain Details</h6>
+                        <div class="accordion" id="domainsAccordion">
+                            <!-- Domains will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Risk Factors</h6>
+                        <table class="table table-sm table-striped" id="risk-factors-table">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Description</th>
+                                    <th>Severity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="risk-factors-body">
+                                <!-- Risk factors will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Interventions</h6>
+                        <table class="table table-sm table-striped" id="interventions-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Date Recommended</th>
+                                </tr>
+                            </thead>
+                            <tbody id="interventions-body">
+                                <!-- Interventions will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Referrals</h6>
+                        <table class="table table-sm table-striped" id="referrals-table">
+                            <thead>
+                                <tr>
+                                    <th>Service Type</th>
+                                    <th>Organization</th>
+                                    <th>Status</th>
+                                    <th>Date Referred</th>
+                                </tr>
+                            </thead>
+                            <tbody id="referrals-body">
+                                <!-- Referrals will be loaded dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        const sdohAssessmentsTable = $('#sdoh-assessments-table').DataTable({
+            ajax: {
+                url: '/api/sdoh-assessments',
+                dataSrc: ''
+            },
+            columns: [
+                { data: 'id' },
+                { 
+                    data: 'member_id',
+                    render: function(data) {
+                        return `<a href="/member/${data}">${data}</a>`;
+                    }
+                },
+                { 
+                    data: 'assessment_date',
+                    render: function(data) {
+                        return data ? new Date(data).toLocaleDateString() : 'N/A';
+                    }
+                },
+                { data: 'provider_id' },
+                { 
+                    data: 'overall_risk_level',
+                    render: function(data) {
+                        let badgeClass = 'bg-secondary';
+                        if (data === 'low') badgeClass = 'bg-success';
+                        else if (data === 'moderate') badgeClass = 'bg-warning';
+                        else if (data === 'high') badgeClass = 'bg-danger';
+                        return `<span class="badge ${badgeClass}">${data}</span>`;
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data) {
+                        return `<button class="btn btn-sm btn-primary view-assessment" data-id="${data.id}">View</button>`;
+                    }
+                }
+            ],
+            order: [[2, 'desc']] // Sort by assessment date descending
+        });
+        
+        // Handle assessment view button click
+        $('#sdoh-assessments-table').on('click', '.view-assessment', function() {
+            const assessmentId = $(this).data('id');
+            
+            // Fetch assessment details
+            $.getJSON(`/api/sdoh-assessments/${assessmentId}`, function(assessment) {
+                // Populate modal with assessment details
+                $('#assessment-id').text(assessment.id);
+                $('#assessment-member-id').html(`<a href="/member/${assessment.member_id}">${assessment.member_id}</a>`);
+                $('#assessment-date').text(assessment.assessment_date ? new Date(assessment.assessment_date).toLocaleDateString() : 'N/A');
+                $('#assessment-provider-id').text(assessment.provider_id || 'N/A');
+                
+                // Set risk level with badge
+                let riskBadgeClass = 'bg-secondary';
+                if (assessment.overall_risk_level === 'low') riskBadgeClass = 'bg-success';
+                else if (assessment.overall_risk_level === 'moderate') riskBadgeClass = 'bg-warning';
+                else if (assessment.overall_risk_level === 'high') riskBadgeClass = 'bg-danger';
+                $('#assessment-risk-level').html(`<span class="badge ${riskBadgeClass}">${assessment.overall_risk_level}</span>`);
+                
+                // Create domain scores chart
+                if (assessment.domains) {
+                    const domainNames = [];
+                    const domainScores = [];
+                    const domainColors = [];
+                    
+                    // Define color mapping for scores
+                    const colorMap = {
+                        1: 'rgba(220, 53, 69, 0.7)', // Danger (red)
+                        2: 'rgba(255, 193, 7, 0.7)', // Warning (yellow)
+                        3: 'rgba(255, 193, 7, 0.5)', // Light warning
+                        4: 'rgba(40, 167, 69, 0.7)', // Success (green)
+                        5: 'rgba(40, 167, 69, 0.5)'  // Light success
+                    };
+                    
+                    // Extract domain data
+                    Object.entries(assessment.domains).forEach(([domain, data]) => {
+                        // Format domain name for display (convert snake_case to Title Case)
+                        const formattedDomain = domain.split('_')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+                        
+                        domainNames.push(formattedDomain);
+                        domainScores.push(data.score);
+                        domainColors.push(colorMap[data.score] || 'rgba(108, 117, 125, 0.7)'); // Default to secondary color
+                    });
+                    
+                    // Create chart
+                    const ctx = document.getElementById('domain-scores-chart').getContext('2d');
+                    if (window.domainChart) {
+                        window.domainChart.destroy();
+                    }
+                    window.domainChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: domainNames,
+                            datasets: [{
+                                label: 'Domain Score (1-5)',
+                                data: domainScores,
+                                backgroundColor: domainColors,
+                                borderColor: domainColors.map(color => color.replace('0.7', '1').replace('0.5', '0.8')),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 5,
+                                    ticks: {
+                                        stepSize: 1
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Create domain accordion
+                    let accordionHtml = '';
+                    Object.entries(assessment.domains).forEach(([domain, data], index) => {
+                        // Format domain name for display
+                        const formattedDomain = domain.split('_')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+                        
+                        // Determine badge color based on score
+                        let badgeClass = 'bg-secondary';
+                        if (data.score <= 1) badgeClass = 'bg-danger';
+                        else if (data.score <= 2) badgeClass = 'bg-warning';
+                        else if (data.score >= 4) badgeClass = 'bg-success';
+                        
+                        accordionHtml += `
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading${index}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="false" aria-controls="collapse${index}">
+                                        ${formattedDomain} <span class="badge ${badgeClass} ms-2">Score: ${data.score}</span>
+                                    </button>
+                                </h2>
+                                <div id="collapse${index}" class="accordion-collapse collapse" aria-labelledby="heading${index}" data-bs-parent="#domainsAccordion">
+                                    <div class="accordion-body">
+                                        ${data.notes || 'No additional notes available.'}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $('#domainsAccordion').html(accordionHtml);
+                }
+                
+                // Populate risk factors table
+                let riskFactorsHtml = '';
+                if (assessment.risk_factors && assessment.risk_factors.length > 0) {
+                    assessment.risk_factors.forEach(function(factor) {
+                        let severityBadgeClass = 'bg-secondary';
+                        if (factor.severity === 'low') severityBadgeClass = 'bg-success';
+                        else if (factor.severity === 'moderate') severityBadgeClass = 'bg-warning';
+                        else if (factor.severity === 'high') severityBadgeClass = 'bg-danger';
+                        
+                        riskFactorsHtml += `
+                            <tr>
+                                <td>${factor.category || 'N/A'}</td>
+                                <td>${factor.description || 'N/A'}</td>
+                                <td><span class="badge ${severityBadgeClass}">${factor.severity || 'N/A'}</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    riskFactorsHtml = '<tr><td colspan="3" class="text-center">No risk factors recorded for this assessment.</td></tr>';
+                }
+                $('#risk-factors-body').html(riskFactorsHtml);
+                
+                // Populate interventions table
+                let interventionsHtml = '';
+                if (assessment.interventions && assessment.interventions.length > 0) {
+                    assessment.interventions.forEach(function(intervention) {
+                        let statusBadgeClass = 'bg-secondary';
+                        if (intervention.status === 'recommended') statusBadgeClass = 'bg-info';
+                        else if (intervention.status === 'in_progress') statusBadgeClass = 'bg-primary';
+                        else if (intervention.status === 'completed') statusBadgeClass = 'bg-success';
+                        else if (intervention.status === 'declined') statusBadgeClass = 'bg-danger';
+                        
+                        interventionsHtml += `
+                            <tr>
+                                <td>${intervention.type || 'N/A'}</td>
+                                <td>${intervention.description || 'N/A'}</td>
+                                <td><span class="badge ${statusBadgeClass}">${intervention.status || 'N/A'}</span></td>
+                                <td>${intervention.date_recommended ? new Date(intervention.date_recommended).toLocaleDateString() : 'N/A'}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    interventionsHtml = '<tr><td colspan="4" class="text-center">No interventions recorded for this assessment.</td></tr>';
+                }
+                $('#interventions-body').html(interventionsHtml);
+                
+                // Populate referrals table
+                let referralsHtml = '';
+                if (assessment.referrals && assessment.referrals.length > 0) {
+                    assessment.referrals.forEach(function(referral) {
+                        let statusBadgeClass = 'bg-secondary';
+                        if (referral.status === 'pending') statusBadgeClass = 'bg-warning';
+                        else if (referral.status === 'accepted') statusBadgeClass = 'bg-success';
+                        else if (referral.status === 'completed') statusBadgeClass = 'bg-primary';
+                        else if (referral.status === 'declined') statusBadgeClass = 'bg-danger';
+                        
+                        referralsHtml += `
+                            <tr>
+                                <td>${referral.service_type || 'N/A'}</td>
+                                <td>${referral.organization || 'N/A'}</td>
+                                <td><span class="badge ${statusBadgeClass}">${referral.status || 'N/A'}</span></td>
+                                <td>${referral.date_referred ? new Date(referral.date_referred).toLocaleDateString() : 'N/A'}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    referralsHtml = '<tr><td colspan="4" class="text-center">No referrals recorded for this assessment.</td></tr>';
+                }
+                $('#referrals-body').html(referralsHtml);
+                
+                // Show the modal
+                $('#sdohDetailsModal').modal('show');
+            });
+        });
+    });
+</script>
+{% endblock %}

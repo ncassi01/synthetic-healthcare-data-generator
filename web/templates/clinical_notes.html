@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}Clinical Notes - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Clinical Notes</h1>
+        <p class="lead">
+            View and explore synthetic clinical note data. Click on a note ID to view detailed information.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Clinical Notes List</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="clinical-notes-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Note ID</th>
+                                <th>Member ID</th>
+                                <th>Date</th>
+                                <th>Provider</th>
+                                <th>Type</th>
+                                <th>Chief Complaint</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- DataTables will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clinical Note Detail Modal -->
+<div class="modal fade" id="noteDetailModal" tabindex="-1" aria-labelledby="noteDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="noteDetailModalLabel">Clinical Note</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="note-detail-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading clinical note...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="view-member-profile" class="btn btn-primary">View Member Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        const clinicalNotesTable = $('#clinical-notes-table').DataTable({
+            processing: true,
+            pageLength: 25,
+            columns: [
+                { data: 'id' },
+                { 
+                    data: 'member_id',
+                    render: function(data) {
+                        return `<a href="/member/${data}">${data}</a>`;
+                    }
+                },
+                { 
+                    data: 'date',
+                    render: function(data) {
+                        return formatDate(data);
+                    }
+                },
+                { data: 'provider_name' },
+                { data: 'note_type' },
+                { data: 'chief_complaint' },
+                {
+                    data: null,
+                    render: function(data) {
+                        return `<button class="btn btn-sm btn-primary view-note" data-id="${data.id}">
+                                    <i class="fas fa-eye"></i> View
+                                </button>`;
+                    }
+                }
+            ]
+        });
+        
+        // Load clinical notes data
+        $.getJSON('/api/clinical-notes', function(data) {
+            clinicalNotesTable.clear();
+            clinicalNotesTable.rows.add(data).draw();
+        });
+        
+        // Handle clinical note detail view
+        $('#clinical-notes-table').on('click', '.view-note', function() {
+            const noteId = $(this).data('id');
+            loadNoteDetails(noteId);
+        });
+        
+        // Check if note ID is in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const noteId = urlParams.get('id');
+        if (noteId) {
+            loadNoteDetails(noteId);
+        }
+        
+        function loadNoteDetails(noteId) {
+            // Show modal
+            $('#noteDetailModal').modal('show');
+            
+            // Load clinical note details
+            $.getJSON(`/api/clinical-notes/${noteId}`, function(note) {
+                renderNoteDetails(note);
+                
+                // Update member profile link
+                $('#view-member-profile').attr('href', `/member/${note.member_id}`);
+            }).fail(function() {
+                $('#note-detail-content').html(`
+                    <div class="alert alert-danger">
+                        Failed to load clinical note details. Please try again.
+                    </div>
+                `);
+            });
+        }
+        
+        function renderNoteDetails(note) {
+            let html = `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Note Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Note ID:</th>
+                                        <td>${note.id}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Member ID:</th>
+                                        <td><a href="/member/${note.member_id}">${note.member_id}</a></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date:</th>
+                                        <td>${formatDate(note.date)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Provider:</th>
+                                        <td>${note.provider_name || 'N/A'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Note Type:</th>
+                                        <td>${note.note_type || 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Chief Complaint:</th>
+                                        <td>${note.chief_complaint || 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Visit Type:</th>
+                                        <td>${note.visit_type || 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Location:</th>
+                                        <td>${note.location || 'N/A'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Note Content
+            html += `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Note Content</h5>
+                    </div>
+                    <div class="card-body clinical-note">
+            `;
+            
+            // Subjective
+            if (note.subjective) {
+                html += `
+                    <div class="clinical-note-section">
+                        <h4>Subjective</h4>
+                        <p>${note.subjective}</p>
+                    </div>
+                `;
+            }
+            
+            // Objective
+            if (note.objective) {
+                html += `
+                    <div class="clinical-note-section">
+                        <h4>Objective</h4>
+                        <p>${note.objective}</p>
+                    </div>
+                `;
+            }
+            
+            // Assessment
+            if (note.assessment) {
+                html += `
+                    <div class="clinical-note-section">
+                        <h4>Assessment</h4>
+                        <p>${note.assessment}</p>
+                    </div>
+                `;
+            }
+            
+            // Plan
+            if (note.plan) {
+                html += `
+                    <div class="clinical-note-section">
+                        <h4>Plan</h4>
+                        <p>${note.plan}</p>
+                    </div>
+                `;
+            }
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            // Diagnoses (if available)
+            if (note.diagnoses && note.diagnoses.length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Diagnoses</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                note.diagnoses.forEach(diagnosis => {
+                    html += `
+                        <div class="col-md-4 mb-2">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <strong>${diagnosis.code}</strong>: ${diagnosis.description || 'No description available'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Medications (if available)
+            if (note.medications && note.medications.length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Medications</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Medication</th>
+                                            <th>Dosage</th>
+                                            <th>Frequency</th>
+                                            <th>Route</th>
+                                            <th>Instructions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                note.medications.forEach(med => {
+                    html += `
+                        <tr>
+                            <td>${med.name}</td>
+                            <td>${med.dosage || 'N/A'}</td>
+                            <td>${med.frequency || 'N/A'}</td>
+                            <td>${med.route || 'N/A'}</td>
+                            <td>${med.instructions || 'N/A'}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Vitals (if available)
+            if (note.vitals) {
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Vitals</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                if (note.vitals.blood_pressure) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>Blood Pressure</h6>
+                                    <h4>${note.vitals.blood_pressure}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (note.vitals.heart_rate) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>Heart Rate</h6>
+                                    <h4>${note.vitals.heart_rate} bpm</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (note.vitals.respiratory_rate) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>Respiratory Rate</h6>
+                                    <h4>${note.vitals.respiratory_rate} breaths/min</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (note.vitals.temperature) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>Temperature</h6>
+                                    <h4>${note.vitals.temperature} °F</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (note.vitals.height) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>Height</h6>
+                                    <h4>${note.vitals.height}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (note.vitals.weight) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>Weight</h6>
+                                    <h4>${note.vitals.weight} lbs</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (note.vitals.bmi) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>BMI</h6>
+                                    <h4>${note.vitals.bmi}</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                if (note.vitals.oxygen_saturation) {
+                    html += `
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6>Oxygen Saturation</h6>
+                                    <h4>${note.vitals.oxygen_saturation}%</h4>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            $('#note-detail-content').html(html);
+            $('#noteDetailModalLabel').text(`Clinical Note: ${note.id}`);
+        }
+    });
+</script>
+{% endblock %}

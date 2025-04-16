@@ -1,0 +1,161 @@
+{
+  "member_count": 100,
+  "claim_count": 300,
+  "clinical_note_count": 298,
+  "authorization_count": 100,
+  "gender": {
+    "male": 52,
+    "female": 48
+  },
+  "state": {
+    "CA": 15,
+    "NY": 12,
+    "TX": 10,
+    "FL": 8,
+    "IL": 7,
+    "PA": 6,
+    "OH": 5,
+    "GA": 5,
+    "NC": 4,
+    "MI": 4
+  },
+  "plan_type": {
+    "HMO": 25,
+    "PPO": 40,
+    "EPO": 15,
+    "HDHP": 20
+  },
+  "metal_level": {
+    "Bronze": 20,
+    "Silver": 35,
+    "Gold": 30,
+    "Platinum": 15
+  },
+  "age_groups": {
+    "0-17": 15,
+    "18-34": 25,
+    "35-50": 30,
+    "51-64": 20,
+    "65+": 10
+  },
+  "conditions": {
+    "Hypertension": 35,
+    "Type 2 Diabetes": 25,
+    "Asthma": 20,
+    "Depression": 18,
+    "Anxiety": 15,
+    "GERD": 12,
+    "Hyperlipidemia": 30,
+    "Hypothyroidism": 10,
+    "Osteoarthritis": 8,
+    "Back Pain": 15
+  },
+  "medications": {
+    "Lisinopril": 30,
+    "Metformin": 25,
+    "Albuterol": 20,
+    "Sertraline": 18,
+    "Omeprazole": 12,
+    "Atorvastatin": 28,
+    "Levothyroxine": 10,
+    "Ibuprofen": 22,
+    "Amlodipine": 15,
+    "Hydrochlorothiazide": 20
+  },
+  "procedures": {
+    "Annual Physical": 75,
+    "Blood Pressure Check": 60,
+    "Cholesterol Screening": 45,
+    "HbA1c Test": 25,
+    "Breast Cancer Screening": 15,
+    "Colorectal Cancer Screening": 12,
+    "Diabetic Eye Exam": 10,
+    "EKG": 18,
+    "Pulmonary Function Test": 8,
+    "Joint X-Ray": 5
+  },
+  "care_gap_types": {
+    "preventive": 40,
+    "screening": 30,
+    "condition_monitoring": 25,
+    "medication_management": 15
+  },
+  "care_gap_priorities": {
+    "high": 35,
+    "medium": 45,
+    "low": 20
+  },
+  "risk_score_ranges": {
+    "clinical_risk": {
+      "0.0-0.2": 20,
+      "0.2-0.4": 30,
+      "0.4-0.6": 25,
+      "0.6-0.8": 15,
+      "0.8-1.0": 10
+    },
+    "readmission_risk": {
+      "0.0-0.2": 25,
+      "0.2-0.4": 35,
+      "0.4-0.6": 20,
+      "0.6-0.8": 12,
+      "0.8-1.0": 8
+    },
+    "medication_adherence": {
+      "0.0-0.2": 10,
+      "0.2-0.4": 15,
+      "0.4-0.6": 25,
+      "0.6-0.8": 30,
+      "0.8-1.0": 20
+    }
+  },
+  "claims_by_month": [
+    {"month": "Jan", "count": 25},
+    {"month": "Feb", "count": 28},
+    {"month": "Mar", "count": 30},
+    {"month": "Apr", "count": 22},
+    {"month": "May", "count": 26},
+    {"month": "Jun", "count": 24},
+    {"month": "Jul", "count": 27},
+    {"month": "Aug", "count": 29},
+    {"month": "Sep", "count": 31},
+    {"month": "Oct", "count": 25},
+    {"month": "Nov", "count": 23},
+    {"month": "Dec", "count": 10}
+  ],
+  "claim_status_distribution": [
+    {"status": "paid", "count": 180},
+    {"status": "pending", "count": 60},
+    {"status": "denied", "count": 30},
+    {"status": "partially_paid", "count": 20},
+    {"status": "in_process", "count": 10}
+  ],
+  "top_diagnoses": [
+    {"code": "I10", "count": 35, "description": "Essential hypertension"},
+    {"code": "E11.9", "count": 25, "description": "Type 2 diabetes mellitus without complications"},
+    {"code": "E78.5", "count": 30, "description": "Hyperlipidemia, unspecified"},
+    {"code": "J45.909", "count": 20, "description": "Unspecified asthma, uncomplicated"},
+    {"code": "F32.9", "count": 18, "description": "Major depressive disorder, single episode, unspecified"},
+    {"code": "F41.9", "count": 15, "description": "Anxiety disorder, unspecified"},
+    {"code": "K21.9", "count": 12, "description": "Gastro-esophageal reflux disease without esophagitis"},
+    {"code": "E03.9", "count": 10, "description": "Hypothyroidism, unspecified"},
+    {"code": "M19.90", "count": 8, "description": "Unspecified osteoarthritis, unspecified site"},
+    {"code": "M54.5", "count": 15, "description": "Low back pain"}
+  ],
+  "authorization_types": [
+    {"type": "inpatient", "count": 20},
+    {"type": "outpatient", "count": 40},
+    {"type": "diagnostic", "count": 25},
+    {"type": "surgical", "count": 15},
+    {"type": "pharmacy", "count": 10},
+    {"type": "durable_medical_equipment", "count": 5},
+    {"type": "home_health", "count": 3},
+    {"type": "skilled_nursing", "count": 2}
+  ],
+  "member_age_distribution": [
+    {"range": "0-17", "count": 15},
+    {"range": "18-34", "count": 25},
+    {"range": "35-50", "count": 30},
+    {"range": "51-65", "count": 20},
+    {"range": "66+", "count": 10}
+  ]
+}

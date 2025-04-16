@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Synthetic Healthcare Data Viewer{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Modern Custom CSS -->
+    <link href="{{ url_for('static', filename='css/modern-style.css') }}" rel="stylesheet">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-heartbeat me-2"></i>Healthcare Data Viewer</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/members' %}active{% endif %}" href="/members">
+                            <i class="fas fa-users"></i> Members
+                        </a>
+                    </li>
+                    
+                    <!-- Clinical Data Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="clinicalDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-notes-medical"></i> Clinical Data
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="clinicalDropdown">
+                            <li><a class="dropdown-item {% if request.path == '/clinical-notes' %}active{% endif %}" href="/clinical-notes">Clinical Notes</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/care-plans' %}active{% endif %}" href="/care-plans">Care Plans</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/care-episodes' %}active{% endif %}" href="/care-episodes">Care Episodes</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/risk-assessments' %}active{% endif %}" href="/risk-assessments">Risk Assessments</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/sdoh-assessments' %}active{% endif %}" href="/sdoh-assessments">SDOH Assessments</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Insurance Data Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="insuranceDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-file-invoice-dollar"></i> Insurance Data
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="insuranceDropdown">
+                            <li><a class="dropdown-item {% if request.path == '/claims' %}active{% endif %}" href="/claims">Claims</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/authorizations' %}active{% endif %}" href="/authorizations">Authorizations</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/eobs' %}active{% endif %}" href="/eobs">EOBs</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/pharmacy-benefit' %}active{% endif %}" href="/pharmacy-benefit">Pharmacy Benefits</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/authorization-rules' %}active{% endif %}" href="/authorization-rules">Authorization Rules</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Provider Data Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="providerDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-hospital-user"></i> Provider Data
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="providerDropdown">
+                            <li><a class="dropdown-item {% if request.path == '/provider-network' %}active{% endif %}" href="/provider-network">Provider Network</a></li>
+                            <li><a class="dropdown-item {% if request.path == '/communications' %}active{% endif %}" href="/communications">Communications</a></li>
+                        </ul>
+                    </li>
+                    
+                    <!-- Patient Data -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/patient-data' %}active{% endif %}" href="/patient-data">
+                            <i class="fas fa-user-edit"></i> Patient Data
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Search Bar -->
+                <form class="d-flex ms-auto">
+                    <div class="input-group">
+                        <input class="form-control" type="search" placeholder="Search members..." aria-label="Search">
+                        <button class="btn btn-outline-light" type="submit"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid mt-4">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container">
+            <span class="text-muted">Synthetic Healthcare Data Viewer &copy; 2025</span>
+        </div>
+    </footer>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

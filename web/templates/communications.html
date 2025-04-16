@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Communications - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Communications</h1>
+        <p class="lead">
+            View and explore synthetic communication data. Click on a communication ID to view detailed information.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Communications List</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="communications-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Member ID</th>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Sender</th>
+                                <th>Recipient</th>
+                                <th>Subject</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- DataTables will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Communication Detail Modal -->
+<div class="modal fade" id="commDetailModal" tabindex="-1" aria-labelledby="commDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="commDetailModalLabel">Communication</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="comm-detail-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading communication...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="view-member-profile" class="btn btn-primary" style="display: none;">View Member Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Debug: Log the column count
+        const columnCount = $('#communications-table thead th').length;
+        console.log(`Communications table has ${columnCount} columns in HTML`);
+        
+        // Hardcoded columns array to match the HTML table structure
+        const columns = [
+            { // ID
+                data: 'id',
+                defaultContent: 'N/A'
+            },
+            { // Member ID
+                data: 'member_id',
+                render: function(data) {
+                    return data ? `<a href="/member/${data}">${data}</a>` : 'N/A';
+                }
+            },
+            { // Date
+                data: 'date',
+                render: function(data) {
+                    return formatDate(data);
+                }
+            },
+            { // Type
+                data: 'communication_type',
+                defaultContent: 'N/A'
+            },
+            { // Sender
+                data: 'sender',
+                defaultContent: 'N/A'
+            },
+            { // Recipient
+                data: 'recipient',
+                defaultContent: 'N/A'
+            },
+            { // Subject
+                data: 'subject',
+                defaultContent: 'N/A'
+            },
+            { // Actions
+                data: null,
+                render: function(data) {
+                    if (!data || !data.id) return 'N/A';
+                    return `<button class="btn btn-sm btn-primary view-comm" data-id="${data.id}">
+                                <i class="fas fa-eye"></i> View
+                            </button>`;
+                }
+            }
+        ];
+        
+        console.log(`Columns array has ${columns.length} columns`);
+        
+        // Initialize DataTable with hardcoded columns
+        const communicationsTable = $('#communications-table').DataTable({
+            processing: true,
+            pageLength: 25,
+            autoWidth: false,
+            responsive: true,
+            columns: columns
+        });
+        
+        // Load communications data
+        $.getJSON('/api/communications', function(data) {
+            communicationsTable.clear();
+            communicationsTable.rows.add(data).draw();
+        });
+        
+        // Handle communication detail view
+        $('#communications-table').on('click', '.view-comm', function() {
+            const commId = $(this).data('id');
+            loadCommDetails(commId);
+        });
+        
+        // Check if communication ID is in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const commId = urlParams.get('id');
+        if (commId) {
+            loadCommDetails(commId);
+        }
+        
+        function loadCommDetails(commId) {
+            // Show modal
+            $('#commDetailModal').modal('show');
+            
+            // Load communication details
+            $.getJSON(`/api/communications/${commId}`, function(comm) {
+                renderCommDetails(comm);
+                
+                // Update member profile link - ensure member_id is not null
+                if (comm.member_id) {
+                    $('#view-member-profile').attr('href', `/member/${comm.member_id}`);
+                    $('#view-member-profile').show();
+                } else {
+                    $('#view-member-profile').hide();
+                }
+            }).fail(function() {
+                $('#comm-detail-content').html(`
+                    <div class="alert alert-danger">
+                        Failed to load communication details. Please try again.
+                    </div>
+                `);
+            });
+        }
+        
+        function renderCommDetails(comm) {
+            // Determine icon based on communication type
+            let typeIcon = 'fa-comment';
+            if (comm.communication_type === 'Email') typeIcon = 'fa-envelope';
+            else if (comm.communication_type === 'Phone') typeIcon = 'fa-phone';
+            else if (comm.communication_type === 'Letter') typeIcon = 'fa-file-alt';
+            else if (comm.communication_type === 'SMS') typeIcon = 'fa-sms';
+            else if (comm.communication_type === 'Portal Message') typeIcon = 'fa-inbox';
+            
+            let html = `
+                <div class="communication-record">
+                    <div class="communication-header">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="bg-primary text-white rounded-circle p-3">
+                                    <i class="fas ${typeIcon} fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h4>${comm.subject}</h4>
+                                <div class="text-muted">
+                                    <span class="badge bg-info">${comm.communication_type}</span>
+                                    <span class="ms-2">${formatDate(comm.date)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>From:</th>
+                                    <td>${comm.sender}</td>
+                                </tr>
+                                <tr>
+                                    <th>To:</th>
+                                    <td>${comm.recipient}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Member ID:</th>
+                                    <td>${comm.member_id ? `<a href="/member/${comm.member_id}">${comm.member_id}</a>` : 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Communication ID:</th>
+                                    <td>${comm.id}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Content</h5>
+                        </div>
+                        <div class="card-body communication-content">
+                            ${comm.content || 'No content available.'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Attachments (if available)
+            if (comm.attachments && comm.attachments.length > 0) {
+                html += `
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Attachments</h5>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                `;
+                
+                comm.attachments.forEach(attachment => {
+                    // Determine icon based on file type
+                    let fileIcon = 'fa-file';
+                    if (attachment.type === 'pdf') fileIcon = 'fa-file-pdf';
+                    else if (attachment.type === 'doc' || attachment.type === 'docx') fileIcon = 'fa-file-word';
+                    else if (attachment.type === 'xls' || attachment.type === 'xlsx') fileIcon = 'fa-file-excel';
+                    else if (attachment.type === 'jpg' || attachment.type === 'png' || attachment.type === 'gif') fileIcon = 'fa-file-image';
+                    
+                    html += `
+                        <li class="list-group-item">
+                            <i class="fas ${fileIcon} me-2"></i>
+                            ${attachment.name}
+                            <span class="text-muted ms-2">(${attachment.size || 'Unknown size'})</span>
+                        </li>
+                    `;
+                });
+                
+                html += `
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Related Communications (if available)
+            if (comm.related_communications && comm.related_communications.length > 0) {
+                html += `
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Related Communications</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Date</th>
+                                            <th>Type</th>
+                                            <th>Subject</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                comm.related_communications.forEach(relatedComm => {
+                    html += `
+                        <tr>
+                            <td>${relatedComm.id}</td>
+                            <td>${formatDate(relatedComm.date)}</td>
+                            <td>${relatedComm.communication_type}</td>
+                            <td>${relatedComm.subject}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary view-related-comm" data-id="${relatedComm.id}">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            $('#comm-detail-content').html(html);
+            $('#commDetailModalLabel').text(`Communication: ${comm.id}`);
+            
+            // Handle related communication view
+            $('.view-related-comm').on('click', function() {
+                const relatedCommId = $(this).data('id');
+                loadCommDetails(relatedCommId);
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,683 @@
+/* Modern UI styles for the Synthetic Healthcare Data Viewer */
+
+/* Modern color scheme */
+:root {
+    --primary-color: #2c3e50;
+    --secondary-color: #3498db;
+    --accent-color: #1abc9c;
+    --light-color: #ecf0f1;
+    --dark-color: #34495e;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --success-color: #2ecc71;
+    --info-color: #3498db;
+    --text-color: #2c3e50;
+    --text-muted: #7f8c8d;
+    --border-color: #dfe6e9;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* General styles */
+body {
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Modern UI enhancements */
+.container-fluid {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+/* Navbar styling */
+.navbar-dark.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    box-shadow: 0 2px 15px var(--shadow-color);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0.5rem 0;
+}
+
+.nav-link {
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+    margin: 0 0.125rem;
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.nav-link i {
+    margin-right: 0.5rem;
+}
+
+.dropdown-menu {
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    border: none;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.dropdown-item {
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    transform: translateX(5px);
+}
+
+/* Card enhancements */
+.card {
+    box-shadow: 0 0.5rem 1.5rem var(--shadow-color);
+    margin-bottom: 1.5rem;
+    border: none;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background: linear-gradient(to right, var(--light-color), #ffffff);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Table enhancements */
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    color: var(--text-color);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table th {
+    background-color: var(--light-color);
+    font-weight: 600;
+    border-top: none;
+    border-bottom: 2px solid var(--border-color);
+    padding: 1rem 1.25rem;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    padding: 1rem 1.25rem;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-hover tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+    transform: scale(1.01);
+}
+
+/* Dashboard cards */
+.dashboard-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 1rem;
+    overflow: hidden;
+    height: 100%;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card .card-body {
+    padding: 1.75rem;
+}
+
+.dashboard-card .icon-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+.dashboard-card .icon-box i {
+    font-size: 1.75rem;
+    color: var(--secondary-color);
+}
+
+.dashboard-card h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+/* Background gradients for cards */
+.bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #27ae60, var(--success-color));
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #2980b9, var(--info-color));
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #d35400, var(--warning-color));
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(135deg, #c0392b, var(--danger-color));
+}
+
+/* Timeline enhancements */
+.timeline {
+    position: relative;
+    padding: 1.5rem 0;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 3px;
+    background: var(--secondary-color);
+    left: 32px;
+    top: 0;
+    border-radius: 1.5px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 80px;
+    margin-bottom: 2rem;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 1;
+    box-shadow: 0 0.5rem 1rem var(--shadow-color);
+}
+
+.timeline-content {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.5rem 1rem var(--shadow-color);
+    position: relative;
+}
+
+.timeline-content:before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 20px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    transform: rotate(45deg);
+    box-shadow: -5px 5px 10px rgba(0, 0, 0, 0.05);
+}
+
+.timeline-date {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
+
+/* Member profile enhancements */
+.member-profile-header {
+    background: linear-gradient(135deg, var(--light-color), #ffffff);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 0.5rem 1.5rem var(--shadow-color);
+    margin-bottom: 2rem;
+}
+
+.member-info .info-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.member-info .info-item:last-child {
+    border-bottom: none;
+}
+
+.member-info .text-muted {
+    font-size: 0.875rem;
+}
+
+.member-info .fw-medium {
+    font-weight: 500;
+}
+
+/* Avatar circle for member profile */
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+    border: 1px solid #dee2e6;
+    background-color: var(--light-color);
+    box-shadow: 0 0.5rem 1rem var(--shadow-color);
+}
+
+.avatar-circle .initials {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Tab navigation enhancements */
+.nav-tabs {
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: var(--secondary-color);
+    transform: none;
+}
+
+.nav-tabs .nav-link.active {
+    color: var(--secondary-color);
+    border-bottom-color: var(--secondary-color);
+    background-color: transparent;
+    font-weight: 600;
+}
+
+.tab-content {
+    padding: 1rem 0;
+}
+
+/* Badge enhancements */
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+    border-radius: 0.5rem;
+}
+
+/* Button enhancements */
+.btn {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline-primary {
+    color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* DataTables customizations */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 1rem;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    margin: 0 0.5rem;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    margin-left: 0.5rem;
+    width: 200px;
+}
+
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.375rem 0.75rem;
+    margin: 0 0.125rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background: white;
+    color: var(--secondary-color) !important;
+    transition: all 0.2s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: var(--light-color) !important;
+    border-color: var(--secondary-color);
+    color: var(--primary-color) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+    border-color: var(--secondary-color);
+    color: white !important;
+    font-weight: 500;
+}
+
+/* Fix for DataTables column count warning */
+.dataTable {
+    width: 100% !important;
+}
+
+.dataTable th, .dataTable td {
+    box-sizing: border-box !important;
+}
+
+.dataTables_scrollHeadInner,
+.dataTables_scrollHeadInner table {
+    width: 100% !important;
+}
+
+/* Clinical note formatting */
+.clinical-note {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.25rem 0.75rem var(--shadow-color);
+}
+
+.clinical-note-section {
+    margin-bottom: 1.25rem;
+}
+
+.clinical-note-section h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
+}
+
+/* Care plan formatting */
+.care-plan {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 0.25rem 0.75rem var(--shadow-color);
+}
+
+.care-plan-goal {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.care-plan-goal:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.care-plan-intervention {
+    margin-left: 1.5rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+}
+
+.care-plan-intervention:before {
+    content: '';
+    position: absolute;
+    left: -1rem;
+    top: 0.5rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background-color: var(--secondary-color);
+}
+
+/* Communication record formatting */
+.communication-record {
+    background-color: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 0.25rem 0.75rem var(--shadow-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.communication-record:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem var(--shadow-color);
+}
+
+.communication-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.communication-content {
+    white-space: pre-line;
+}
+
+/* Dashboard header */
+.dashboard-header {
+    margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.dashboard-header .lead {
+    font-size: 1.1rem;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Breadcrumb styling */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.75rem 0;
+    margin-bottom: 1.5rem;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: var(--text-muted);
+}
+
+.breadcrumb-item a {
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary-color);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+/* Footer styling */
+.footer {
+    margin-top: auto;
+    padding: 1.5rem 0;
+    background-color: var(--light-color);
+    border-top: 1px solid var(--border-color);
+}
+
+.footer .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .container-fluid {
+        padding: 0 1rem;
+    }
+    
+    .card-header {
+        padding: 1rem 1.25rem;
+    }
+    
+    .card-body {
+        padding: 1.25rem;
+    }
+    
+    .table th, .table td {
+        padding: 0.75rem 1rem;
+    }
+    
+    .member-profile-header {
+        padding: 1.5rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-card .icon-box {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .dashboard-card .icon-box i {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    .timeline-item {
+        padding-left: 60px;
+    }
+    
+    .timeline:before {
+        left: 24px;
+    }
+    
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .avatar-circle {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .avatar-circle .initials {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .dashboard-card .card-body {
+        padding: 1.25rem;
+    }
+    
+    .member-profile-header {
+        padding: 1.25rem;
+    }
+}

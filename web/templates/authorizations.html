@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}Authorizations - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Authorizations</h1>
+        <p class="lead">
+            View and explore synthetic authorization data. Click on an authorization ID to view detailed information.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Authorization List</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="authorizations-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Auth ID</th>
+                                <th>Member ID</th>
+                                <th>Request Date</th>
+                                <th>Service</th>
+                                <th>Provider</th>
+                                <th>Status</th>
+                                <th>Decision Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- DataTables will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Authorization Detail Modal -->
+<div class="modal fade" id="authDetailModal" tabindex="-1" aria-labelledby="authDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="authDetailModalLabel">Authorization Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="auth-detail-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading authorization details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="view-member-profile" class="btn btn-primary">View Member Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable using the common function
+        const authorizationsTable = initDataTable('authorizations-table', {
+            processing: true,
+            columns: [
+                { data: 'id' },
+                {
+                    data: 'member_id',
+                    render: function(data) {
+                        return `<a href="/member/${data}">${data}</a>`;
+                    }
+                },
+                {
+                    data: 'date_requested',
+                    render: function(data) {
+                        return formatDate(data);
+                    }
+                },
+                {
+                    data: 'service_lines',
+                    render: function(data) {
+                        return data && data.length > 0 ? data[0].description : 'N/A';
+                    }
+                },
+                {
+                    data: 'provider_id',
+                    render: function(data) {
+                        return data || 'N/A';
+                    }
+                },
+                {
+                    data: 'status',
+                    render: function(data) {
+                        return formatStatusBadge(data, 'auth');
+                    }
+                },
+                {
+                    data: 'date_decision',
+                    render: function(data) {
+                        return data ? formatDate(data) : 'Pending';
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data) {
+                        return `<button class="btn btn-sm btn-primary view-auth" data-id="${data.id}">
+                                    <i class="fas fa-eye"></i> View
+                                </button>`;
+                    }
+                }
+            ]
+        });
+        
+        // Load authorization data
+        $.getJSON('/api/authorizations', function(data) {
+            authorizationsTable.clear();
+            authorizationsTable.rows.add(data).draw();
+        });
+        
+        // Handle authorization detail view
+        $('#authorizations-table').on('click', '.view-auth', function() {
+            const authId = $(this).data('id');
+            loadAuthDetails(authId);
+        });
+        
+        // Check if authorization ID is in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const authId = urlParams.get('id');
+        if (authId) {
+            loadAuthDetails(authId);
+        }
+        
+        function loadAuthDetails(authId) {
+            // Show modal
+            $('#authDetailModal').modal('show');
+            
+            // Load authorization details
+            $.getJSON(`/api/authorizations/${authId}`, function(auth) {
+                renderAuthDetails(auth);
+                
+                // Update member profile link
+                $('#view-member-profile').attr('href', `/member/${auth.member_id}`);
+            }).fail(function() {
+                $('#auth-detail-content').html(`
+                    <div class="alert alert-danger">
+                        Failed to load authorization details. Please try again.
+                    </div>
+                `);
+            });
+        }
+        
+        function renderAuthDetails(auth) {
+            let html = `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Authorization Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Auth ID:</th>
+                                        <td>${auth.id}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Member ID:</th>
+                                        <td><a href="/member/${auth.member_id}">${auth.member_id}</a></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Request Date:</th>
+                                        <td>${formatDate(auth.date_requested)}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Service:</th>
+                                        <td>${auth.service_lines && auth.service_lines.length > 0 ? auth.service_lines[0].description : 'N/A'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Provider:</th>
+                                        <td>${auth.provider_id || 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Status:</th>
+                                        <td>${formatStatusBadge(auth.status, 'auth')}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Decision Date:</th>
+                                        <td>${auth.date_decision ? formatDate(auth.date_decision) : 'Pending'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Auth Type:</th>
+                                        <td>${auth.authorization_type || 'N/A'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Clinical Information (if available)
+            if (auth.clinical_justification) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Clinical Justification</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>${auth.clinical_justification}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Service Lines (if available)
+            if (auth.service_lines && auth.service_lines.length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Service Lines</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Description</th>
+                                        <th>Type</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                `;
+                
+                auth.service_lines.forEach(service => {
+                    html += `
+                        <tr>
+                            <td>${service.service_code}</td>
+                            <td>${service.description}</td>
+                            <td>${service.service_type}</td>
+                            <td>${service.quantity}</td>
+                            <td>$${service.unit_price.toFixed(2)}</td>
+                            <td>$${service.total_price.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Diagnosis Codes (if available)
+            if (auth.diagnosis_codes && auth.diagnosis_codes.length > 0) {
+                html += `
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Diagnosis Codes</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                auth.diagnosis_codes.forEach(code => {
+                    html += `
+                        <div class="col-md-4 mb-2">
+                            <div class="card">
+                                <div class="card-body py-2">
+                                    <strong>${code}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Decision Rationale (if available)
+            if (auth.decision_rationale) {
+                html += `
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Decision Rationale</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>${auth.decision_rationale}</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            $('#auth-detail-content').html(html);
+            $('#authDetailModalLabel').text(`Authorization Details: ${auth.id}`);
+        }
+    });
+</script>
+{% endblock %}

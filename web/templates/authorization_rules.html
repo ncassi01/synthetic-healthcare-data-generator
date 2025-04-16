@@ -1,0 +1,535 @@
+{% extends "base.html" %}
+
+{% block title %}Authorization Rules - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Authorization Rules</h1>
+        <p class="lead">
+            This page displays authorization rules and decisions for determining when prior authorization is required.
+        </p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="authTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="rules-tab" data-bs-toggle="tab" data-bs-target="#rules" type="button" role="tab" aria-controls="rules" aria-selected="true">Authorization Rules</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="decisions-tab" data-bs-toggle="tab" data-bs-target="#decisions" type="button" role="tab" aria-controls="decisions" aria-selected="false">Authorization Decisions</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="authTabsContent">
+                    <!-- Rules Tab -->
+                    <div class="tab-pane fade show active" id="rules" role="tabpanel" aria-labelledby="rules-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="rules-table" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Service Type</th>
+                                        <th>Effective Date</th>
+                                        <th>Review Type</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Decisions Tab -->
+                    <div class="tab-pane fade" id="decisions" role="tabpanel" aria-labelledby="decisions-tab">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="decisions-table" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Authorization ID</th>
+                                        <th>Rule ID</th>
+                                        <th>Decision</th>
+                                        <th>Decision Date</th>
+                                        <th>Reviewer</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rule Details Modal -->
+<div class="modal fade" id="ruleDetailsModal" tabindex="-1" aria-labelledby="ruleDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ruleDetailsModalLabel">Authorization Rule Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Rule Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>ID:</th>
+                                <td id="rule-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Name:</th>
+                                <td id="rule-name"></td>
+                            </tr>
+                            <tr>
+                                <th>Description:</th>
+                                <td id="rule-description"></td>
+                            </tr>
+                            <tr>
+                                <th>Service Type:</th>
+                                <td id="rule-service-type"></td>
+                            </tr>
+                            <tr>
+                                <th>Effective Date:</th>
+                                <td id="rule-effective-date"></td>
+                            </tr>
+                            <tr>
+                                <th>End Date:</th>
+                                <td id="rule-end-date"></td>
+                            </tr>
+                            <tr>
+                                <th>Review Type:</th>
+                                <td id="rule-review-type"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Service Codes</h6>
+                        <div id="rule-service-codes">
+                            <!-- Service codes will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Criteria</h6>
+                        <div id="rule-criteria-accordion" class="accordion">
+                            <!-- Criteria will be loaded dynamically -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Exceptions</h6>
+                        <div id="rule-exceptions-accordion" class="accordion">
+                            <!-- Exceptions will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Approval Criteria</h6>
+                        <div id="rule-approval-criteria-accordion" class="accordion">
+                            <!-- Approval criteria will be loaded dynamically -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Denial Criteria</h6>
+                        <div id="rule-denial-criteria-accordion" class="accordion">
+                            <!-- Denial criteria will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Decision Details Modal -->
+<div class="modal fade" id="decisionDetailsModal" tabindex="-1" aria-labelledby="decisionDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="decisionDetailsModalLabel">Authorization Decision Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Decision Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>ID:</th>
+                                <td id="decision-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Authorization ID:</th>
+                                <td id="decision-auth-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Rule ID:</th>
+                                <td id="decision-rule-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Decision:</th>
+                                <td id="decision-decision"></td>
+                            </tr>
+                            <tr>
+                                <th>Decision Date:</th>
+                                <td id="decision-date"></td>
+                            </tr>
+                            <tr>
+                                <th>Reviewer ID:</th>
+                                <td id="decision-reviewer-id"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Rationale</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <p id="decision-rationale"></p>
+                            </div>
+                        </div>
+                        
+                        <h6 class="mt-3">Reviewer Notes</h6>
+                        <div class="card">
+                            <div class="card-body">
+                                <p id="decision-reviewer-notes"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Criteria Met</h6>
+                        <ul class="list-group" id="decision-criteria-met">
+                            <!-- Criteria met will be loaded dynamically -->
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Criteria Not Met</h6>
+                        <ul class="list-group" id="decision-criteria-not-met">
+                            <!-- Criteria not met will be loaded dynamically -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Load authorization rules data
+        $.getJSON('/api/authorization-rules', function(data) {
+            // Initialize rules table
+            if (data.rules && data.rules.length > 0) {
+                const rulesTable = $('#rules-table').DataTable({
+                    data: data.rules,
+                    columns: [
+                        { data: 'id' },
+                        { data: 'name' },
+                        { data: 'service_type' },
+                        { 
+                            data: 'effective_date',
+                            render: function(data) {
+                                return data ? new Date(data).toLocaleDateString() : 'N/A';
+                            }
+                        },
+                        { data: 'review_type' },
+                        {
+                            data: null,
+                            render: function(data) {
+                                return `<button class="btn btn-sm btn-primary view-rule" data-id="${data.id}">View</button>`;
+                            }
+                        }
+                    ],
+                    order: [[3, 'desc']] // Sort by effective date descending
+                });
+                
+                // Handle rule view button click
+                $('#rules-table').on('click', '.view-rule', function() {
+                    const ruleId = $(this).data('id');
+                    const rule = data.rules.find(r => r.id === ruleId);
+                    
+                    if (rule) {
+                        // Populate modal with rule details
+                        $('#rule-id').text(rule.id);
+                        $('#rule-name').text(rule.name || 'N/A');
+                        $('#rule-description').text(rule.description || 'N/A');
+                        $('#rule-service-type').text(rule.service_type || 'N/A');
+                        $('#rule-effective-date').text(rule.effective_date ? new Date(rule.effective_date).toLocaleDateString() : 'N/A');
+                        $('#rule-end-date').text(rule.end_date ? new Date(rule.end_date).toLocaleDateString() : 'N/A');
+                        $('#rule-review-type').text(rule.review_type || 'N/A');
+                        
+                        // Service codes
+                        if (rule.service_codes && rule.service_codes.length > 0) {
+                            let codesHtml = '<div class="card"><div class="card-body"><div class="row">';
+                            rule.service_codes.forEach(code => {
+                                codesHtml += `
+                                    <div class="col-md-3 mb-2">
+                                        <span class="badge bg-secondary">${code}</span>
+                                    </div>
+                                `;
+                            });
+                            codesHtml += '</div></div></div>';
+                            $('#rule-service-codes').html(codesHtml);
+                        } else {
+                            $('#rule-service-codes').html('<p class="text-muted">No service codes specified.</p>');
+                        }
+                        
+                        // Criteria
+                        if (rule.criteria && Object.keys(rule.criteria).length > 0) {
+                            let criteriaHtml = '';
+                            let criteriaIndex = 0;
+                            
+                            Object.entries(rule.criteria).forEach(([key, criteria]) => {
+                                criteriaIndex++;
+                                criteriaHtml += `
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="criteria-heading-${criteriaIndex}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#criteria-collapse-${criteriaIndex}" aria-expanded="false" aria-controls="criteria-collapse-${criteriaIndex}">
+                                                ${key}
+                                            </button>
+                                        </h2>
+                                        <div id="criteria-collapse-${criteriaIndex}" class="accordion-collapse collapse" aria-labelledby="criteria-heading-${criteriaIndex}" data-bs-parent="#rule-criteria-accordion">
+                                            <div class="accordion-body">
+                                                <p><strong>Description:</strong> ${criteria.description || 'N/A'}</p>
+                                                <p><strong>Condition:</strong> ${JSON.stringify(criteria.condition, null, 2)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            $('#rule-criteria-accordion').html(criteriaHtml);
+                        } else {
+                            $('#rule-criteria-accordion').html('<p class="text-muted">No criteria specified.</p>');
+                        }
+                        
+                        // Exceptions
+                        if (rule.exceptions && rule.exceptions.length > 0) {
+                            let exceptionsHtml = '';
+                            
+                            rule.exceptions.forEach((exception, index) => {
+                                exceptionsHtml += `
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="exception-heading-${index}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#exception-collapse-${index}" aria-expanded="false" aria-controls="exception-collapse-${index}">
+                                                ${exception.name || `Exception ${index + 1}`}
+                                            </button>
+                                        </h2>
+                                        <div id="exception-collapse-${index}" class="accordion-collapse collapse" aria-labelledby="exception-heading-${index}" data-bs-parent="#rule-exceptions-accordion">
+                                            <div class="accordion-body">
+                                                <p><strong>Description:</strong> ${exception.description || 'N/A'}</p>
+                                                <p><strong>Condition:</strong> ${JSON.stringify(exception.condition, null, 2)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            $('#rule-exceptions-accordion').html(exceptionsHtml);
+                        } else {
+                            $('#rule-exceptions-accordion').html('<p class="text-muted">No exceptions specified.</p>');
+                        }
+                        
+                        // Approval criteria
+                        if (rule.approval_criteria && Object.keys(rule.approval_criteria).length > 0) {
+                            let approvalHtml = '';
+                            let approvalIndex = 0;
+                            
+                            Object.entries(rule.approval_criteria).forEach(([key, criteria]) => {
+                                approvalIndex++;
+                                approvalHtml += `
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="approval-heading-${approvalIndex}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#approval-collapse-${approvalIndex}" aria-expanded="false" aria-controls="approval-collapse-${approvalIndex}">
+                                                ${key}
+                                            </button>
+                                        </h2>
+                                        <div id="approval-collapse-${approvalIndex}" class="accordion-collapse collapse" aria-labelledby="approval-heading-${approvalIndex}" data-bs-parent="#rule-approval-criteria-accordion">
+                                            <div class="accordion-body">
+                                                <p><strong>Description:</strong> ${criteria.description || 'N/A'}</p>
+                                                <p><strong>Condition:</strong> ${JSON.stringify(criteria.condition, null, 2)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            $('#rule-approval-criteria-accordion').html(approvalHtml);
+                        } else {
+                            $('#rule-approval-criteria-accordion').html('<p class="text-muted">No approval criteria specified.</p>');
+                        }
+                        
+                        // Denial criteria
+                        if (rule.denial_criteria && Object.keys(rule.denial_criteria).length > 0) {
+                            let denialHtml = '';
+                            let denialIndex = 0;
+                            
+                            Object.entries(rule.denial_criteria).forEach(([key, criteria]) => {
+                                denialIndex++;
+                                denialHtml += `
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="denial-heading-${denialIndex}">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#denial-collapse-${denialIndex}" aria-expanded="false" aria-controls="denial-collapse-${denialIndex}">
+                                                ${key}
+                                            </button>
+                                        </h2>
+                                        <div id="denial-collapse-${denialIndex}" class="accordion-collapse collapse" aria-labelledby="denial-heading-${denialIndex}" data-bs-parent="#rule-denial-criteria-accordion">
+                                            <div class="accordion-body">
+                                                <p><strong>Description:</strong> ${criteria.description || 'N/A'}</p>
+                                                <p><strong>Condition:</strong> ${JSON.stringify(criteria.condition, null, 2)}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            
+                            $('#rule-denial-criteria-accordion').html(denialHtml);
+                        } else {
+                            $('#rule-denial-criteria-accordion').html('<p class="text-muted">No denial criteria specified.</p>');
+                        }
+                        
+                        // Show the modal
+                        $('#ruleDetailsModal').modal('show');
+                    }
+                });
+            } else {
+                $('#rules').html('<div class="alert alert-info">No authorization rules available.</div>');
+            }
+            
+            // Initialize decisions table
+            if (data.decisions && data.decisions.length > 0) {
+                const decisionsTable = $('#decisions-table').DataTable({
+                    data: data.decisions,
+                    columns: [
+                        { data: 'id' },
+                        { 
+                            data: 'authorization_id',
+                            render: function(data) {
+                                return `<a href="/authorizations?id=${data}">${data}</a>`;
+                            }
+                        },
+                        { data: 'rule_id' },
+                        { 
+                            data: 'decision',
+                            render: function(data) {
+                                let badgeClass = 'bg-secondary';
+                                if (data === 'approved') badgeClass = 'bg-success';
+                                else if (data === 'denied') badgeClass = 'bg-danger';
+                                else if (data === 'modified') badgeClass = 'bg-warning';
+                                return `<span class="badge ${badgeClass}">${data || 'Unknown'}</span>`;
+                            }
+                        },
+                        { 
+                            data: 'decision_date',
+                            render: function(data) {
+                                return data ? new Date(data).toLocaleDateString() : 'N/A';
+                            }
+                        },
+                        { data: 'reviewer_id' },
+                        {
+                            data: null,
+                            render: function(data) {
+                                return `<button class="btn btn-sm btn-primary view-decision" data-id="${data.id}">View</button>`;
+                            }
+                        }
+                    ],
+                    order: [[4, 'desc']] // Sort by decision date descending
+                });
+                
+                // Handle decision view button click
+                $('#decisions-table').on('click', '.view-decision', function() {
+                    const decisionId = $(this).data('id');
+                    const decision = data.decisions.find(d => d.id === decisionId);
+                    
+                    if (decision) {
+                        // Populate modal with decision details
+                        $('#decision-id').text(decision.id);
+                        $('#decision-auth-id').html(`<a href="/authorizations?id=${decision.authorization_id}">${decision.authorization_id}</a>`);
+                        $('#decision-rule-id').text(decision.rule_id);
+                        
+                        // Decision with badge
+                        let decisionBadgeClass = 'bg-secondary';
+                        if (decision.decision === 'approved') decisionBadgeClass = 'bg-success';
+                        else if (decision.decision === 'denied') decisionBadgeClass = 'bg-danger';
+                        else if (decision.decision === 'modified') decisionBadgeClass = 'bg-warning';
+                        $('#decision-decision').html(`<span class="badge ${decisionBadgeClass}">${decision.decision || 'Unknown'}</span>`);
+                        
+                        $('#decision-date').text(decision.decision_date ? new Date(decision.decision_date).toLocaleDateString() : 'N/A');
+                        $('#decision-reviewer-id').text(decision.reviewer_id || 'N/A');
+                        $('#decision-rationale').text(decision.rationale || 'No rationale provided.');
+                        $('#decision-reviewer-notes').text(decision.reviewer_notes || 'No reviewer notes provided.');
+                        
+                        // Criteria met
+                        if (decision.criteria_met && decision.criteria_met.length > 0) {
+                            let criteriaMetHtml = '';
+                            decision.criteria_met.forEach(criteria => {
+                                criteriaMetHtml += `
+                                    <li class="list-group-item">
+                                        <strong>${criteria.name || 'Unnamed Criterion'}</strong>
+                                        ${criteria.details ? `<p class="mb-0 text-muted">${criteria.details}</p>` : ''}
+                                    </li>
+                                `;
+                            });
+                            $('#decision-criteria-met').html(criteriaMetHtml);
+                        } else {
+                            $('#decision-criteria-met').html('<li class="list-group-item">No criteria met.</li>');
+                        }
+                        
+                        // Criteria not met
+                        if (decision.criteria_not_met && decision.criteria_not_met.length > 0) {
+                            let criteriaNotMetHtml = '';
+                            decision.criteria_not_met.forEach(criteria => {
+                                criteriaNotMetHtml += `
+                                    <li class="list-group-item">
+                                        <strong>${criteria.name || 'Unnamed Criterion'}</strong>
+                                        ${criteria.details ? `<p class="mb-0 text-muted">${criteria.details}</p>` : ''}
+                                    </li>
+                                `;
+                            });
+                            $('#decision-criteria-not-met').html(criteriaNotMetHtml);
+                        } else {
+                            $('#decision-criteria-not-met').html('<li class="list-group-item">No criteria not met.</li>');
+                        }
+                        
+                        // Show the modal
+                        $('#decisionDetailsModal').modal('show');
+                    }
+                });
+            } else {
+                $('#decisions').html('<div class="alert alert-info">No authorization decisions available.</div>');
+            }
+        }).fail(function() {
+            $('.card-body').html('<div class="alert alert-danger">Failed to load authorization rules data.</div>');
+        });
+    });
+</script>
+{% endblock %}

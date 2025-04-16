@@ -1,0 +1,180 @@
+{
+  "data_generation": {
+    "member_count": 100,
+    "seed": 42,
+    "output_format": "json",
+    "output_directory": "../output"
+  },
+  "member_config": {
+    "age_distribution": {
+      "min_age": 0,
+      "max_age": 100,
+      "mean_age": 45,
+      "std_dev": 20
+    },
+    "gender_distribution": {
+      "male": 0.48,
+      "female": 0.51,
+      "other": 0.01
+    },
+    "location": {
+      "country": "US",
+      "state_distribution": {
+        "CA": 0.12,
+        "TX": 0.09,
+        "FL": 0.07,
+        "NY": 0.06,
+        "PA": 0.04,
+        "IL": 0.04,
+        "OH": 0.04,
+        "GA": 0.03,
+        "NC": 0.03,
+        "MI": 0.03,
+        "NJ": 0.03,
+        "VA": 0.03,
+        "WA": 0.02,
+        "AZ": 0.02,
+        "MA": 0.02,
+        "TN": 0.02,
+        "IN": 0.02,
+        "MO": 0.02,
+        "MD": 0.02,
+        "WI": 0.02,
+        "CO": 0.02,
+        "MN": 0.02,
+        "SC": 0.02,
+        "AL": 0.02,
+        "LA": 0.01,
+        "KY": 0.01,
+        "OR": 0.01,
+        "OK": 0.01,
+        "CT": 0.01,
+        "UT": 0.01,
+        "IA": 0.01,
+        "NV": 0.01,
+        "AR": 0.01,
+        "MS": 0.01,
+        "KS": 0.01,
+        "NM": 0.01,
+        "NE": 0.01,
+        "WV": 0.01,
+        "ID": 0.01,
+        "HI": 0.005,
+        "NH": 0.005,
+        "ME": 0.005,
+        "MT": 0.005,
+        "RI": 0.005,
+        "DE": 0.005,
+        "SD": 0.005,
+        "ND": 0.005,
+        "AK": 0.005,
+        "DC": 0.005,
+        "VT": 0.005,
+        "WY": 0.005
+      }
+    }
+  },
+  "insurance_config": {
+    "plan_types": {
+      "HMO": 0.3,
+      "PPO": 0.4,
+      "EPO": 0.1,
+      "POS": 0.1,
+      "HDHP": 0.1
+    },
+    "metal_levels": {
+      "Bronze": 0.2,
+      "Silver": 0.4,
+      "Gold": 0.3,
+      "Platinum": 0.1
+    },
+    "coverage_start_date": {
+      "min_year": 2020,
+      "max_year": 2025
+    }
+  },
+  "clinical_config": {
+    "condition_count": {
+      "min": 0,
+      "max": 10,
+      "mean": 3,
+      "std_dev": 2
+    },
+    "medication_count": {
+      "min": 0,
+      "max": 15,
+      "mean": 2,
+      "std_dev": 3
+    },
+    "procedure_count": {
+      "min": 0,
+      "max": 5,
+      "mean": 1,
+      "std_dev": 1
+    }
+  },
+  "claim_config": {
+    "claim_count_per_member": {
+      "min": 0,
+      "max": 10,
+      "mean": 3,
+      "std_dev": 2
+    },
+    "status_distribution": {
+      "submitted": 0.05,
+      "pending": 0.1,
+      "in_process": 0.1,
+      "denied": 0.1,
+      "partially_paid": 0.15,
+      "paid": 0.45,
+      "appealed": 0.05
+    }
+  },
+  "authorization_config": {
+    "auth_count_per_member": {
+      "min": 0,
+      "max": 5,
+      "mean": 1,
+      "std_dev": 1
+    },
+    "status_distribution": {
+      "submitted": 0.05,
+      "pending": 0.15,
+      "additional_info_needed": 0.1,
+      "approved": 0.6,
+      "denied": 0.05,
+      "appealed": 0.05
+    }
+  },
+  "plan_config": {
+    "plan_count": 20
+  },
+  "service_config": {
+    "service_line_count": {
+      "min": 1,
+      "max": 5,
+      "mean": 2,
+      "std_dev": 1
+    }
+  },
+  "processor_config": {
+    "enabled": true,
+    "output_format": "json",
+    "output_directory": "../output/processed"
+  },
+  "enrichment_config": {
+    "enrich_conditions": true,
+    "enrich_medications": true,
+    "enrich_procedures": true,
+    "add_risk_scores": true,
+    "add_care_gaps": true,
+    "enrich_claims": true,
+    "enrich_authorizations": true,
+    "enrich_eobs": true,
+    "enrich_plans": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "data_generation.log"
+  }
+}

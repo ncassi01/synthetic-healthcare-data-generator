@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Members - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Members</h1>
+        <p class="lead">
+            View and explore synthetic member data. Click on a member ID or name to view detailed information.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Member List</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="members-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>State</th>
+                                <th>Plan</th>
+                                <th>Risk Score</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- DataTables will populate this -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Member Detail Modal -->
+<div class="modal fade" id="memberDetailModal" tabindex="-1" aria-labelledby="memberDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="memberDetailModalLabel">Member Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="member-detail-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading member details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="view-full-profile" class="btn btn-primary">View Full Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Hardcoded columns array to match the HTML table structure
+        const columns = [
+            { // ID
+                data: 'id',
+                render: function(data) {
+                    return data ? `<a href="/member/${data}">${data}</a>` : 'N/A';
+                }
+            },
+            { // Name
+                data: null,
+                render: function(data) {
+                    return data && data.first_name ?
+                        `<a href="/member/${data.id}">${data.first_name} ${data.last_name}</a>` : 'N/A';
+                }
+            },
+            { // Age
+                data: null,
+                render: function(data) {
+                    if (!data || !data.date_of_birth) return 'N/A';
+                    // Calculate age from date_of_birth
+                    const dob = new Date(data.date_of_birth);
+                    const today = new Date();
+                    let age = today.getFullYear() - dob.getFullYear();
+                    const monthDiff = today.getMonth() - dob.getMonth();
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                    }
+                    return age;
+                }
+            },
+            { // Gender
+                data: 'gender',
+                defaultContent: 'N/A',
+                render: function(data) {
+                    return data || 'N/A';
+                }
+            },
+            { // State
+                data: null,
+                render: function(data, type, row) {
+                    return row.address && row.address.state ? row.address.state : 'N/A';
+                }
+            },
+            { // Plan
+                data: null,
+                defaultContent: 'N/A',
+                render: function(data) {
+                    return data && data.insurance && data.insurance.plan_name ? data.insurance.plan_name : 'N/A';
+                }
+            },
+            { // Risk Score
+                data: 'risk_score',
+                render: function(data) {
+                    if (data === undefined) return 'N/A';
+                    return formatRiskScore(data);
+                }
+            },
+            { // Actions
+                data: null,
+                render: function(data) {
+                    if (!data || !data.id) return 'N/A';
+                    return `
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary view-member" data-id="${data.id}">
+                                <i class="fas fa-eye"></i> Quick View
+                            </button>
+                            <a href="/member/${data.id}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-user"></i> Full Profile
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+        ];
+        
+        // Debug: Log the column count
+        console.log(`Table has ${$('#members-table thead th').length} columns in HTML`);
+        console.log(`Columns array has ${columns.length} columns`);
+        
+        // Initialize DataTable with hardcoded columns
+        const membersTable = $('#members-table').DataTable({
+            processing: true,
+            pageLength: 25,
+            autoWidth: false,
+            responsive: true,
+            columns: columns
+        });
+        
+        // Load member data
+        $.getJSON('/api/members', function(data) {
+            membersTable.clear();
+            membersTable.rows.add(data).draw();
+        });
+        
+        // Handle member detail view
+        $('#members-table').on('click', '.view-member', function() {
+            const memberId = $(this).data('id');
+            loadMemberDetails(memberId);
+        });
+        
+        // Check if member ID is in URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const memberId = urlParams.get('id');
+        if (memberId) {
+            loadMemberDetails(memberId);
+        }
+        
+        function loadMemberDetails(memberId) {
+            // Show modal
+            $('#memberDetailModal').modal('show');
+            
+            // Update full profile link
+            $('#view-full-profile').attr('href', `/member/${memberId}`);
+            
+            // Load member details
+            $.getJSON(`/api/member/${memberId}/related`, function(data) {
+                renderMemberDetails(data);
+            }).fail(function() {
+                $('#member-detail-content').html(`
+                    <div class="alert alert-danger">
+                        Failed to load member details. Please try again.
+                    </div>
+                `);
+            });
+        }
+        
+        function renderMemberDetails(data) {
+            const member = data.member;
+            
+            // Format dates
+            const dob = new Date(member.date_of_birth);
+            const formattedDob = dob.toLocaleDateString();
+            
+            // Build HTML for member details
+            let html = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Demographics</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Name:</th>
+                                        <td>${member.first_name} ${member.last_name}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Date of Birth:</th>
+                                        <td>${formattedDob} (${member.age} years)</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Gender:</th>
+                                        <td>${member.gender}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Address:</th>
+                                        <td>${member.address.street}, ${member.address.city}, ${member.address.state} ${member.address.zip}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Phone:</th>
+                                        <td>${member.phone || 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email:</th>
+                                        <td>${member.email || 'N/A'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Insurance</h5>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-sm">
+                                    <tr>
+                                        <th>Plan:</th>
+                                        <td>${member.insurance && member.insurance.plan_name ? member.insurance.plan_name : 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Member ID:</th>
+                                        <td>${member.insurance.member_id}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Group Number:</th>
+                                        <td>${member.insurance.group_number}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Effective Date:</th>
+                                        <td>${member.insurance && member.insurance.effective_date ? member.insurance.effective_date : 'N/A'}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Primary Care Provider:</th>
+                                        <td>${member.insurance.primary_care_provider || 'None'}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Risk Score (if available)
+            if (member.risk_score !== undefined) {
+                const riskScore = parseFloat(member.risk_score).toFixed(2);
+                let riskClass = 'success';
+                if (riskScore > 0.7) riskClass = 'danger';
+                else if (riskScore > 0.4) riskClass = 'warning';
+                
+                html += `
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Risk Assessment</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4 mx-auto">
+                                            <div class="card border-${riskClass} mb-3">
+                                                <div class="card-header bg-${riskClass} text-white">Clinical Risk Score</div>
+                                                <div class="card-body text-center">
+                                                    <h1>${riskScore}</h1>
+                                                    <p>${riskScore < 0.4 ? 'Low Risk' : riskScore < 0.7 ? 'Medium Risk' : 'High Risk'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Summary of related data
+            html += `
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Related Data Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card text-center h-100">
+                                            <div class="card-body">
+                                                <h1>${data.claims.length}</h1>
+                                                <p>Claims</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card text-center h-100">
+                                            <div class="card-body">
+                                                <h1>${data.authorizations.length}</h1>
+                                                <p>Authorizations</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card text-center h-100">
+                                            <div class="card-body">
+                                                <h1>${data.clinical_notes.length}</h1>
+                                                <p>Clinical Notes</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card text-center h-100">
+                                            <div class="card-body">
+                                                <h1>${data.care_plans.length}</h1>
+                                                <p>Care Plans</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <a href="/member/${member.id}" class="btn btn-primary">
+                                        <i class="fas fa-user"></i> View Full Member Profile
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Update modal content
+            $('#member-detail-content').html(html);
+            $('#memberDetailModalLabel').text(`Member Details: ${member.first_name} ${member.last_name}`);
+        }
+    });
+</script>
+{% endblock %}

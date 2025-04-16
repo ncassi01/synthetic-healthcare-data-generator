@@ -1,0 +1,550 @@
+{% extends "base.html" %}
+
+{% block title %}Risk Assessments - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Risk Assessments</h1>
+        <p class="lead">
+            This page displays comprehensive risk assessments for members, including clinical, financial, and care management risk factors.
+        </p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Risk Assessments</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="risk-assessments-table" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Member ID</th>
+                                <th>Assessment Date</th>
+                                <th>Overall Score</th>
+                                <th>Risk Level</th>
+                                <th>Stratification</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Assessment Details Modal -->
+<div class="modal fade" id="riskDetailsModal" tabindex="-1" aria-labelledby="riskDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="riskDetailsModalLabel">Risk Assessment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Assessment Information</h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <th>ID:</th>
+                                <td id="assessment-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Member ID:</th>
+                                <td id="assessment-member-id"></td>
+                            </tr>
+                            <tr>
+                                <th>Assessment Date:</th>
+                                <td id="assessment-date"></td>
+                            </tr>
+                            <tr>
+                                <th>Overall Score:</th>
+                                <td id="assessment-score"></td>
+                            </tr>
+                            <tr>
+                                <th>Risk Level:</th>
+                                <td id="assessment-level"></td>
+                            </tr>
+                            <tr>
+                                <th>Stratification:</th>
+                                <td id="assessment-stratification"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Risk Score Breakdown</h6>
+                        <div id="risk-scores-chart-container">
+                            <canvas id="risk-scores-chart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Risk Trends</h6>
+                        <div id="risk-trends-chart-container">
+                            <canvas id="risk-trends-chart" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <ul class="nav nav-tabs" id="riskTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="clinical-tab" data-bs-toggle="tab" data-bs-target="#clinical" type="button" role="tab" aria-controls="clinical" aria-selected="true">Clinical Risk</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="financial-tab" data-bs-toggle="tab" data-bs-target="#financial" type="button" role="tab" aria-controls="financial" aria-selected="false">Financial Risk</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="care-tab" data-bs-toggle="tab" data-bs-target="#care" type="button" role="tab" aria-controls="care" aria-selected="false">Care Management Risk</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="interventions-tab" data-bs-toggle="tab" data-bs-target="#interventions" type="button" role="tab" aria-controls="interventions" aria-selected="false">Recommended Interventions</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content p-3 border border-top-0 rounded-bottom" id="riskTabsContent">
+                            <div class="tab-pane fade show active" id="clinical" role="tabpanel" aria-labelledby="clinical-tab">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">Clinical Risk Score</h5>
+                                                <div class="display-4 mb-2" id="clinical-risk-score">--</div>
+                                                <span class="badge bg-secondary" id="clinical-risk-level">--</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h6>Clinical Risk Factors</h6>
+                                        <table class="table table-sm table-striped" id="clinical-factors-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th>Description</th>
+                                                    <th>Impact</th>
+                                                    <th>Modifiable</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="clinical-factors-body">
+                                                <!-- Clinical factors will be loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="financial" role="tabpanel" aria-labelledby="financial-tab">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">Financial Risk Score</h5>
+                                                <div class="display-4 mb-2" id="financial-risk-score">--</div>
+                                                <span class="badge bg-secondary" id="financial-risk-level">--</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h6>Financial Risk Factors</h6>
+                                        <table class="table table-sm table-striped" id="financial-factors-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th>Description</th>
+                                                    <th>Impact</th>
+                                                    <th>Modifiable</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="financial-factors-body">
+                                                <!-- Financial factors will be loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="care" role="tabpanel" aria-labelledby="care-tab">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title">Care Management Risk Score</h5>
+                                                <div class="display-4 mb-2" id="care-risk-score">--</div>
+                                                <span class="badge bg-secondary" id="care-risk-level">--</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <h6>Care Management Risk Factors</h6>
+                                        <table class="table table-sm table-striped" id="care-factors-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Type</th>
+                                                    <th>Description</th>
+                                                    <th>Impact</th>
+                                                    <th>Modifiable</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="care-factors-body">
+                                                <!-- Care management factors will be loaded dynamically -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="interventions" role="tabpanel" aria-labelledby="interventions-tab">
+                                <h6>Recommended Interventions</h6>
+                                <table class="table table-sm table-striped" id="interventions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Description</th>
+                                            <th>Priority</th>
+                                            <th>Status</th>
+                                            <th>Date Recommended</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="interventions-body">
+                                        <!-- Interventions will be loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize DataTable
+        const riskAssessmentsTable = $('#risk-assessments-table').DataTable({
+            ajax: {
+                url: '/api/risk-assessments',
+                dataSrc: ''
+            },
+            columns: [
+                { data: 'id' },
+                { 
+                    data: 'member_id',
+                    render: function(data) {
+                        return `<a href="/member/${data}">${data}</a>`;
+                    }
+                },
+                { 
+                    data: 'assessment_date',
+                    render: function(data) {
+                        return data ? new Date(data).toLocaleDateString() : 'N/A';
+                    }
+                },
+                { 
+                    data: 'overall_risk.score',
+                    render: function(data) {
+                        return data ? data.toFixed(1) : 'N/A';
+                    }
+                },
+                { 
+                    data: 'overall_risk.level',
+                    render: function(data) {
+                        let badgeClass = 'bg-secondary';
+                        if (data === 'low') badgeClass = 'bg-success';
+                        else if (data === 'moderate') badgeClass = 'bg-warning';
+                        else if (data === 'high') badgeClass = 'bg-danger';
+                        return `<span class="badge ${badgeClass}">${data}</span>`;
+                    }
+                },
+                { 
+                    data: 'overall_risk.stratification',
+                    render: function(data) {
+                        return data || 'N/A';
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data) {
+                        return `<button class="btn btn-sm btn-primary view-assessment" data-id="${data.id}">View</button>`;
+                    }
+                }
+            ],
+            order: [[2, 'desc']] // Sort by assessment date descending
+        });
+        
+        // Handle assessment view button click
+        $('#risk-assessments-table').on('click', '.view-assessment', function() {
+            const assessmentId = $(this).data('id');
+            
+            // Fetch assessment details
+            $.getJSON(`/api/risk-assessments/${assessmentId}`, function(assessment) {
+                // Populate modal with assessment details
+                $('#assessment-id').text(assessment.id);
+                $('#assessment-member-id').html(`<a href="/member/${assessment.member_id}">${assessment.member_id}</a>`);
+                $('#assessment-date').text(assessment.assessment_date ? new Date(assessment.assessment_date).toLocaleDateString() : 'N/A');
+                
+                // Set overall risk information
+                if (assessment.overall_risk) {
+                    $('#assessment-score').text(assessment.overall_risk.score ? assessment.overall_risk.score.toFixed(1) : 'N/A');
+                    
+                    // Set risk level with badge
+                    let riskBadgeClass = 'bg-secondary';
+                    if (assessment.overall_risk.level === 'low') riskBadgeClass = 'bg-success';
+                    else if (assessment.overall_risk.level === 'moderate') riskBadgeClass = 'bg-warning';
+                    else if (assessment.overall_risk.level === 'high') riskBadgeClass = 'bg-danger';
+                    $('#assessment-level').html(`<span class="badge ${riskBadgeClass}">${assessment.overall_risk.level}</span>`);
+                    
+                    $('#assessment-stratification').text(assessment.overall_risk.stratification || 'N/A');
+                } else {
+                    $('#assessment-score, #assessment-level, #assessment-stratification').text('N/A');
+                }
+                
+                // Create risk scores breakdown chart
+                if (assessment.clinical_risk && assessment.financial_risk && assessment.care_management_risk) {
+                    const ctx = document.getElementById('risk-scores-chart').getContext('2d');
+                    if (window.riskScoresChart) {
+                        window.riskScoresChart.destroy();
+                    }
+                    
+                    const riskScores = [
+                        assessment.clinical_risk.score,
+                        assessment.financial_risk.score,
+                        assessment.care_management_risk.score
+                    ];
+                    
+                    const riskColors = [
+                        'rgba(220, 53, 69, 0.7)', // Clinical - Danger (red)
+                        'rgba(255, 193, 7, 0.7)', // Financial - Warning (yellow)
+                        'rgba(40, 167, 69, 0.7)'  // Care Management - Success (green)
+                    ];
+                    
+                    window.riskScoresChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Clinical Risk', 'Financial Risk', 'Care Management Risk'],
+                            datasets: [{
+                                label: 'Risk Score',
+                                data: riskScores,
+                                backgroundColor: riskColors,
+                                borderColor: riskColors.map(color => color.replace('0.7', '1')),
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Create risk trends chart
+                if (assessment.risk_trends && assessment.risk_trends.length > 0) {
+                    const ctx = document.getElementById('risk-trends-chart').getContext('2d');
+                    if (window.riskTrendsChart) {
+                        window.riskTrendsChart.destroy();
+                    }
+                    
+                    const dates = [];
+                    const scores = [];
+                    
+                    // Sort trends by date
+                    const sortedTrends = [...assessment.risk_trends].sort((a, b) => 
+                        new Date(a.date) - new Date(b.date)
+                    );
+                    
+                    // Extract trend data
+                    sortedTrends.forEach(trend => {
+                        dates.push(new Date(trend.date).toLocaleDateString());
+                        scores.push(trend.score);
+                    });
+                    
+                    // Add current assessment if not already in trends
+                    if (assessment.assessment_date && !dates.includes(new Date(assessment.assessment_date).toLocaleDateString())) {
+                        dates.push(new Date(assessment.assessment_date).toLocaleDateString());
+                        scores.push(assessment.overall_risk.score);
+                    }
+                    
+                    window.riskTrendsChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Risk Score Over Time',
+                                data: scores,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 2,
+                                tension: 0.1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    $('#risk-trends-chart-container').html('<p class="text-muted">No risk trend data available.</p>');
+                }
+                
+                // Populate clinical risk tab
+                if (assessment.clinical_risk) {
+                    $('#clinical-risk-score').text(assessment.clinical_risk.score ? assessment.clinical_risk.score.toFixed(1) : '--');
+                    
+                    let clinicalBadgeClass = 'bg-secondary';
+                    if (assessment.clinical_risk.level === 'low') clinicalBadgeClass = 'bg-success';
+                    else if (assessment.clinical_risk.level === 'moderate') clinicalBadgeClass = 'bg-warning';
+                    else if (assessment.clinical_risk.level === 'high') clinicalBadgeClass = 'bg-danger';
+                    $('#clinical-risk-level').removeClass().addClass(`badge ${clinicalBadgeClass}`).text(assessment.clinical_risk.level);
+                    
+                    // Populate clinical factors table
+                    let clinicalFactorsHtml = '';
+                    if (assessment.clinical_risk.factors && assessment.clinical_risk.factors.length > 0) {
+                        assessment.clinical_risk.factors.forEach(function(factor) {
+                            let impactBadgeClass = 'bg-secondary';
+                            if (factor.impact === 'low') impactBadgeClass = 'bg-success';
+                            else if (factor.impact === 'moderate') impactBadgeClass = 'bg-warning';
+                            else if (factor.impact === 'high') impactBadgeClass = 'bg-danger';
+                            
+                            clinicalFactorsHtml += `
+                                <tr>
+                                    <td>${factor.type || 'N/A'}</td>
+                                    <td>${factor.description || 'N/A'}</td>
+                                    <td><span class="badge ${impactBadgeClass}">${factor.impact || 'N/A'}</span></td>
+                                    <td>${factor.modifiable ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>'}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        clinicalFactorsHtml = '<tr><td colspan="4" class="text-center">No clinical risk factors recorded.</td></tr>';
+                    }
+                    $('#clinical-factors-body').html(clinicalFactorsHtml);
+                }
+                
+                // Populate financial risk tab
+                if (assessment.financial_risk) {
+                    $('#financial-risk-score').text(assessment.financial_risk.score ? assessment.financial_risk.score.toFixed(1) : '--');
+                    
+                    let financialBadgeClass = 'bg-secondary';
+                    if (assessment.financial_risk.level === 'low') financialBadgeClass = 'bg-success';
+                    else if (assessment.financial_risk.level === 'moderate') financialBadgeClass = 'bg-warning';
+                    else if (assessment.financial_risk.level === 'high') financialBadgeClass = 'bg-danger';
+                    $('#financial-risk-level').removeClass().addClass(`badge ${financialBadgeClass}`).text(assessment.financial_risk.level);
+                    
+                    // Populate financial factors table
+                    let financialFactorsHtml = '';
+                    if (assessment.financial_risk.factors && assessment.financial_risk.factors.length > 0) {
+                        assessment.financial_risk.factors.forEach(function(factor) {
+                            let impactBadgeClass = 'bg-secondary';
+                            if (factor.impact === 'low') impactBadgeClass = 'bg-success';
+                            else if (factor.impact === 'moderate') impactBadgeClass = 'bg-warning';
+                            else if (factor.impact === 'high') impactBadgeClass = 'bg-danger';
+                            
+                            financialFactorsHtml += `
+                                <tr>
+                                    <td>${factor.type || 'N/A'}</td>
+                                    <td>${factor.description || 'N/A'}</td>
+                                    <td><span class="badge ${impactBadgeClass}">${factor.impact || 'N/A'}</span></td>
+                                    <td>${factor.modifiable ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>'}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        financialFactorsHtml = '<tr><td colspan="4" class="text-center">No financial risk factors recorded.</td></tr>';
+                    }
+                    $('#financial-factors-body').html(financialFactorsHtml);
+                }
+                
+                // Populate care management risk tab
+                if (assessment.care_management_risk) {
+                    $('#care-risk-score').text(assessment.care_management_risk.score ? assessment.care_management_risk.score.toFixed(1) : '--');
+                    
+                    let careBadgeClass = 'bg-secondary';
+                    if (assessment.care_management_risk.level === 'low') careBadgeClass = 'bg-success';
+                    else if (assessment.care_management_risk.level === 'moderate') careBadgeClass = 'bg-warning';
+                    else if (assessment.care_management_risk.level === 'high') careBadgeClass = 'bg-danger';
+                    $('#care-risk-level').removeClass().addClass(`badge ${careBadgeClass}`).text(assessment.care_management_risk.level);
+                    
+                    // Populate care management factors table
+                    let careFactorsHtml = '';
+                    if (assessment.care_management_risk.factors && assessment.care_management_risk.factors.length > 0) {
+                        assessment.care_management_risk.factors.forEach(function(factor) {
+                            let impactBadgeClass = 'bg-secondary';
+                            if (factor.impact === 'low') impactBadgeClass = 'bg-success';
+                            else if (factor.impact === 'moderate') impactBadgeClass = 'bg-warning';
+                            else if (factor.impact === 'high') impactBadgeClass = 'bg-danger';
+                            
+                            careFactorsHtml += `
+                                <tr>
+                                    <td>${factor.type || 'N/A'}</td>
+                                    <td>${factor.description || 'N/A'}</td>
+                                    <td><span class="badge ${impactBadgeClass}">${factor.impact || 'N/A'}</span></td>
+                                    <td>${factor.modifiable ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>'}</td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        careFactorsHtml = '<tr><td colspan="4" class="text-center">No care management risk factors recorded.</td></tr>';
+                    }
+                    $('#care-factors-body').html(careFactorsHtml);
+                }
+                
+                // Populate interventions tab
+                let interventionsHtml = '';
+                if (assessment.recommended_interventions && assessment.recommended_interventions.length > 0) {
+                    assessment.recommended_interventions.forEach(function(intervention) {
+                        let priorityBadgeClass = 'bg-secondary';
+                        if (intervention.priority === 'low') priorityBadgeClass = 'bg-success';
+                        else if (intervention.priority === 'medium') priorityBadgeClass = 'bg-warning';
+                        else if (intervention.priority === 'high') priorityBadgeClass = 'bg-danger';
+                        
+                        let statusBadgeClass = 'bg-secondary';
+                        if (intervention.status === 'recommended') statusBadgeClass = 'bg-info';
+                        else if (intervention.status === 'in_progress') statusBadgeClass = 'bg-primary';
+                        else if (intervention.status === 'completed') statusBadgeClass = 'bg-success';
+                        else if (intervention.status === 'declined') statusBadgeClass = 'bg-danger';
+                        
+                        interventionsHtml += `
+                            <tr>
+                                <td>${intervention.category || 'N/A'}</td>
+                                <td>${intervention.description || 'N/A'}</td>
+                                <td><span class="badge ${priorityBadgeClass}">${intervention.priority || 'N/A'}</span></td>
+                                <td><span class="badge ${statusBadgeClass}">${intervention.status || 'N/A'}</span></td>
+                                <td>${intervention.date_recommended ? new Date(intervention.date_recommended).toLocaleDateString() : 'N/A'}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    interventionsHtml = '<tr><td colspan="5" class="text-center">No interventions recommended.</td></tr>';
+                }
+                $('#interventions-body').html(interventionsHtml);
+                
+                // Show the modal
+                $('#riskDetailsModal').modal('show');
+            });
+        });
+    });
+</script>
+{% endblock %}

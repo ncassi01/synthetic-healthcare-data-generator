@@ -1,0 +1,543 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Statistics</h1>
+        <p class="lead">
+            View and explore statistics about the synthetic healthcare data. This page provides insights into the distribution and characteristics of the generated data.
+        </p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Summary Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card h-100 border-primary dashboard-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">Members</h5>
+            </div>
+            <div class="card-body">
+                <h2 class="card-text text-center" id="member-count">Loading...</h2>
+                <p class="card-text text-center">Total Members</p>
+            </div>
+            <div class="card-footer">
+                <a href="/members" class="btn btn-outline-primary btn-sm w-100">View Members</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card h-100 border-success dashboard-card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">Claims</h5>
+            </div>
+            <div class="card-body">
+                <h2 class="card-text text-center" id="claim-count">Loading...</h2>
+                <p class="card-text text-center">Total Claims</p>
+            </div>
+            <div class="card-footer">
+                <a href="/claims" class="btn btn-outline-success btn-sm w-100">View Claims</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card h-100 border-warning dashboard-card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">Authorizations</h5>
+            </div>
+            <div class="card-body">
+                <h2 class="card-text text-center" id="auth-count">Loading...</h2>
+                <p class="card-text text-center">Total Authorizations</p>
+            </div>
+            <div class="card-footer">
+                <a href="/authorizations" class="btn btn-outline-warning btn-sm w-100">View Authorizations</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card h-100 border-info dashboard-card">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">Clinical Notes</h5>
+            </div>
+            <div class="card-body">
+                <h2 class="card-text text-center" id="note-count">Loading...</h2>
+                <p class="card-text text-center">Total Clinical Notes</p>
+            </div>
+            <div class="card-footer">
+                <a href="/clinical-notes" class="btn btn-outline-info btn-sm w-100">View Clinical Notes</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Demographics Charts -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Age Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="age-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Gender Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="gender-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Risk and Conditions Charts -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Risk Score Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="risk-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Top Conditions</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="conditions-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Geographic Distribution -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Geographic Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="state-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Insurance Plans -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Insurance Plans</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="plan-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Claims Statistics -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Claims by Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="claim-status-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Authorization Statistics -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Authorizations by Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="auth-status-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Data Generation Statistics -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Data Generation Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="generation-stats-table">
+                        <thead>
+                            <tr>
+                                <th>Data Type</th>
+                                <th>Count</th>
+                                <th>Generation Time</th>
+                                <th>Average Time per Item</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="4" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Load statistics data
+        $.getJSON('/api/statistics', function(stats) {
+            // Update summary counts
+            $('#member-count').text(stats.counts.members || 0);
+            $('#claim-count').text(stats.counts.claims || 0);
+            $('#auth-count').text(stats.counts.authorizations || 0);
+            $('#note-count').text(stats.counts.clinical_notes || 0);
+            
+            // Age distribution chart
+            if (stats.age_groups) {
+                const ageCtx = document.getElementById('age-chart').getContext('2d');
+                new Chart(ageCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(stats.age_groups),
+                        datasets: [{
+                            label: 'Members by Age Group',
+                            data: Object.values(stats.age_groups),
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gender distribution chart
+            if (stats.gender) {
+                const genderCtx = document.getElementById('gender-chart').getContext('2d');
+                new Chart(genderCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(stats.gender),
+                        datasets: [{
+                            data: Object.values(stats.gender),
+                            backgroundColor: [
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(255, 206, 86, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(255, 206, 86, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Risk score distribution chart
+            if (stats.risk_score_ranges && stats.risk_score_ranges.clinical_risk) {
+                const riskCtx = document.getElementById('risk-chart').getContext('2d');
+                new Chart(riskCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(stats.risk_score_ranges.clinical_risk),
+                        datasets: [{
+                            label: 'Clinical Risk',
+                            data: Object.values(stats.risk_score_ranges.clinical_risk),
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Top conditions chart
+            if (stats.conditions) {
+                // Sort conditions by count and get top 10
+                const sortedConditions = Object.entries(stats.conditions)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 10);
+                
+                const conditionLabels = sortedConditions.map(item => item[0]);
+                const conditionCounts = sortedConditions.map(item => item[1]);
+                
+                const conditionsCtx = document.getElementById('conditions-chart').getContext('2d');
+                new Chart(conditionsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: conditionLabels,
+                        datasets: [{
+                            label: 'Count',
+                            data: conditionCounts,
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', // This makes the bar chart horizontal
+                        scales: {
+                            x: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Geographic distribution chart
+            if (stats.states) {
+                const stateCtx = document.getElementById('state-chart').getContext('2d');
+                
+                // Sort states by count
+                const sortedStates = Object.entries(stats.states)
+                    .sort((a, b) => b[1] - a[1]);
+                
+                const stateLabels = sortedStates.map(item => item[0]);
+                const stateCounts = sortedStates.map(item => item[1]);
+                
+                new Chart(stateCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: stateLabels,
+                        datasets: [{
+                            label: 'Members by State',
+                            data: stateCounts,
+                            backgroundColor: 'rgba(153, 102, 255, 0.5)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Insurance plans chart
+            if (stats.plans) {
+                const planCtx = document.getElementById('plan-chart').getContext('2d');
+                
+                // Sort plans by count
+                const sortedPlans = Object.entries(stats.plans)
+                    .sort((a, b) => b[1] - a[1]);
+                
+                const planLabels = sortedPlans.map(item => item[0]);
+                const planCounts = sortedPlans.map(item => item[1]);
+                
+                new Chart(planCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: planLabels,
+                        datasets: [{
+                            data: planCounts,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.5)',
+                                'rgba(54, 162, 235, 0.5)',
+                                'rgba(255, 206, 86, 0.5)',
+                                'rgba(75, 192, 192, 0.5)',
+                                'rgba(153, 102, 255, 0.5)',
+                                'rgba(255, 159, 64, 0.5)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Claims by status chart
+            if (stats.claim_status) {
+                const claimStatusCtx = document.getElementById('claim-status-chart').getContext('2d');
+                
+                const statusLabels = Object.keys(stats.claim_status);
+                const statusCounts = Object.values(stats.claim_status);
+                
+                // Define colors based on status
+                const backgroundColors = statusLabels.map(status => {
+                    if (status === 'Paid') return 'rgba(40, 167, 69, 0.5)'; // Green
+                    if (status === 'Denied') return 'rgba(220, 53, 69, 0.5)'; // Red
+                    if (status === 'Pending') return 'rgba(255, 193, 7, 0.5)'; // Yellow
+                    return 'rgba(108, 117, 125, 0.5)'; // Gray
+                });
+                
+                const borderColors = statusLabels.map(status => {
+                    if (status === 'Paid') return 'rgba(40, 167, 69, 1)';
+                    if (status === 'Denied') return 'rgba(220, 53, 69, 1)';
+                    if (status === 'Pending') return 'rgba(255, 193, 7, 1)';
+                    return 'rgba(108, 117, 125, 1)';
+                });
+                
+                new Chart(claimStatusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusCounts,
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Authorizations by status chart
+            if (stats.auth_status) {
+                const authStatusCtx = document.getElementById('auth-status-chart').getContext('2d');
+                
+                const statusLabels = Object.keys(stats.auth_status);
+                const statusCounts = Object.values(stats.auth_status);
+                
+                // Define colors based on status
+                const backgroundColors = statusLabels.map(status => {
+                    if (status === 'Approved') return 'rgba(40, 167, 69, 0.5)'; // Green
+                    if (status === 'Denied') return 'rgba(220, 53, 69, 0.5)'; // Red
+                    if (status === 'Pending') return 'rgba(255, 193, 7, 0.5)'; // Yellow
+                    return 'rgba(108, 117, 125, 0.5)'; // Gray
+                });
+                
+                const borderColors = statusLabels.map(status => {
+                    if (status === 'Approved') return 'rgba(40, 167, 69, 1)';
+                    if (status === 'Denied') return 'rgba(220, 53, 69, 1)';
+                    if (status === 'Pending') return 'rgba(255, 193, 7, 1)';
+                    return 'rgba(108, 117, 125, 1)';
+                });
+                
+                new Chart(authStatusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusCounts,
+                            backgroundColor: backgroundColors,
+                            borderColor: borderColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Data generation statistics table
+            if (stats.generation_stats) {
+                let tableHtml = '';
+                
+                Object.entries(stats.generation_stats).forEach(([dataType, statData]) => {
+                    const count = statData.count || 0;
+                    const timeMs = statData.time_ms || 0;
+                    const avgTimeMs = count > 0 ? timeMs / count : 0;
+                    
+                    tableHtml += `
+                        <tr>
+                            <td>${dataType}</td>
+                            <td>${count.toLocaleString()}</td>
+                            <td>${(timeMs / 1000).toFixed(2)} seconds</td>
+                            <td>${avgTimeMs.toFixed(2)} ms</td>
+                        </tr>
+                    `;
+                });
+                
+                $('#generation-stats-table tbody').html(tableHtml);
+            }
+        }).fail(function() {
+            // Handle error
+            $('.chart-container').html('<div class="alert alert-danger">Failed to load statistics data.</div>');
+            $('#generation-stats-table tbody').html('<tr><td colspan="4" class="text-center">Failed to load statistics data.</td></tr>');
+        });
+    });
+</script>
+{% endblock %}

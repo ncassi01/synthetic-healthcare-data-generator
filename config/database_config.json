@@ -1,0 +1,59 @@
+{
+  "postgresql": {
+    "host": "localhost",
+    "port": 5432,
+    "user": "postgres",
+    "password": "postgres",
+    "database": "healthcare",
+    "schema": "public",
+    "connection_timeout": 30,
+    "connection_retries": 3,
+    "retry_delay": 5
+  },
+  "mongodb": {
+    "host": "localhost",
+    "port": 27017,
+    "database": "healthcare",
+    "username": "",
+    "password": "",
+    "auth_source": "admin",
+    "connection_timeout": 30000,
+    "connection_retries": 3,
+    "retry_delay": 5
+  },
+  "neo4j": {
+    "uri": "bolt://localhost:7687",
+    "username": "neo4j",
+    "password": "neo4j",
+    "database": "healthcare",
+    "connection_timeout": 30,
+    "connection_retries": 3,
+    "retry_delay": 5
+  },
+  "pinecone": {
+    "api_key": "your-api-key",
+    "environment": "us-west1-gcp",
+    "project_name": "healthcare",
+    "dimension": 768,
+    "metric": "cosine",
+    "pod_type": "p1.x1",
+    "connection_retries": 3,
+    "retry_delay": 5,
+    "index_name": "healthcare-embeddings"
+  },
+  "relational_database": "healthcare",
+  "document_database": "healthcare",
+  "graph_database": "healthcare",
+  "vector_database": "healthcare-embeddings",
+  "synchronization": {
+    "batch_size": 100,
+    "sync_interval": 60,
+    "change_log_table": "sync_change_log"
+  },
+  "query_orchestration": {
+    "cache_enabled": true,
+    "cache_ttl": 300,
+    "cache_size": 1000,
+    "query_timeout": 30
+  }
+}

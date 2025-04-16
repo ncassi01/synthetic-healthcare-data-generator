@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}Member Details - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/members">Members</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Member Details</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div id="member-profile-container">
+            <div class="text-center my-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Loading member details...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="memberTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">Overview</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="claims-tab" data-bs-toggle="tab" data-bs-target="#claims" type="button" role="tab" aria-controls="claims" aria-selected="false">Claims</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="authorizations-tab" data-bs-toggle="tab" data-bs-target="#authorizations" type="button" role="tab" aria-controls="authorizations" aria-selected="false">Authorizations</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="eobs-tab" data-bs-toggle="tab" data-bs-target="#eobs" type="button" role="tab" aria-controls="eobs" aria-selected="false">EOBs</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="clinical-notes-tab" data-bs-toggle="tab" data-bs-target="#clinical-notes" type="button" role="tab" aria-controls="clinical-notes" aria-selected="false">Clinical Notes</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="care-plans-tab" data-bs-toggle="tab" data-bs-target="#care-plans" type="button" role="tab" aria-controls="care-plans" aria-selected="false">Care Plans</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="communications-tab" data-bs-toggle="tab" data-bs-target="#communications" type="button" role="tab" aria-controls="communications" aria-selected="false">Communications</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="patient-data-tab" data-bs-toggle="tab" data-bs-target="#patient-data" type="button" role="tab" aria-controls="patient-data" aria-selected="false">Patient Data</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="care-episodes-tab" data-bs-toggle="tab" data-bs-target="#care-episodes" type="button" role="tab" aria-controls="care-episodes" aria-selected="false">Care Episodes</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="sdoh-tab" data-bs-toggle="tab" data-bs-target="#sdoh" type="button" role="tab" aria-controls="sdoh" aria-selected="false">SDOH</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="risk-tab" data-bs-toggle="tab" data-bs-target="#risk" type="button" role="tab" aria-controls="risk" aria-selected="false">Risk Assessment</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pharmacy-tab" data-bs-toggle="tab" data-bs-target="#pharmacy" type="button" role="tab" aria-controls="pharmacy" aria-selected="false">Pharmacy Claims</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="memberTabsContent">
+                    <!-- Tab content will be loaded dynamically -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                        <div id="overview-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading overview...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="claims" role="tabpanel" aria-labelledby="claims-tab">
+                        <div id="claims-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading claims...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="authorizations" role="tabpanel" aria-labelledby="authorizations-tab">
+                        <div id="authorizations-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading authorizations...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="eobs" role="tabpanel" aria-labelledby="eobs-tab">
+                        <div id="eobs-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading explanation of benefits...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="clinical-notes" role="tabpanel" aria-labelledby="clinical-notes-tab">
+                        <div id="clinical-notes-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading clinical notes...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="care-plans" role="tabpanel" aria-labelledby="care-plans-tab">
+                        <div id="care-plans-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading care plans...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="communications" role="tabpanel" aria-labelledby="communications-tab">
+                        <div id="communications-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading communications...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="patient-data" role="tabpanel" aria-labelledby="patient-data-tab">
+                        <div id="patient-data-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading patient-generated data...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="care-episodes" role="tabpanel" aria-labelledby="care-episodes-tab">
+                        <div id="care-episodes-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading care episodes...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="sdoh" role="tabpanel" aria-labelledby="sdoh-tab">
+                        <div id="sdoh-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading SDOH assessments...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="risk" role="tabpanel" aria-labelledby="risk-tab">
+                        <div id="risk-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading risk assessments...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="pharmacy" role="tabpanel" aria-labelledby="pharmacy-tab">
+                        <div id="pharmacy-content">
+                            <div class="text-center my-5">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading pharmacy claims...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Claim Detail Modal -->
+<div class="modal fade" id="claimDetailModal" tabindex="-1" aria-labelledby="claimDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="claimDetailModalLabel">Claim Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="claim-detail-content">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Loading claim details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/member_view.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,544 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Synthetic Healthcare Data Viewer{% endblock %}
+
+{% block content %}
+<div class="dashboard-header mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h1 class="display-5 fw-bold">Healthcare Data Dashboard</h1>
+            <p class="lead text-muted">Overview of synthetic healthcare data</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary">
+                    <i class="fas fa-download me-2"></i> Export Data
+                </button>
+                <button type="button" class="btn btn-outline-primary">
+                    <i class="fas fa-sync-alt me-2"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Summary Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card dashboard-card bg-gradient-primary text-white">
+            <div class="card-body">
+                <div class="icon-box bg-white">
+                    <i class="fas fa-users text-primary"></i>
+                </div>
+                <h3 id="member-count">0</h3>
+                <p class="mb-0">Total Members</p>
+                <div class="progress mt-3" style="height: 5px;">
+                    <div class="progress-bar bg-white" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card dashboard-card bg-gradient-success text-white">
+            <div class="card-body">
+                <div class="icon-box bg-white">
+                    <i class="fas fa-file-invoice-dollar text-success"></i>
+                </div>
+                <h3 id="claim-count">0</h3>
+                <p class="mb-0">Total Claims</p>
+                <div class="progress mt-3" style="height: 5px;">
+                    <div class="progress-bar bg-white" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card dashboard-card bg-gradient-info text-white">
+            <div class="card-body">
+                <div class="icon-box bg-white">
+                    <i class="fas fa-notes-medical text-info"></i>
+                </div>
+                <h3 id="note-count">0</h3>
+                <p class="mb-0">Clinical Notes</p>
+                <div class="progress mt-3" style="height: 5px;">
+                    <div class="progress-bar bg-white" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card dashboard-card bg-gradient-warning text-white">
+            <div class="card-body">
+                <div class="icon-box bg-white">
+                    <i class="fas fa-clipboard-check text-warning"></i>
+                </div>
+                <h3 id="auth-count">0</h3>
+                <p class="mb-0">Authorizations</p>
+                <div class="progress mt-3" style="height: 5px;">
+                    <div class="progress-bar bg-white" role="progressbar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Charts -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Claims Distribution</h5>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-outline-secondary active" data-period="monthly">Monthly</button>
+                    <button type="button" class="btn btn-outline-secondary" data-period="quarterly">Quarterly</button>
+                    <button type="button" class="btn btn-outline-secondary" data-period="yearly">Yearly</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="claimsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Claim Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="claimStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Activity -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Claims</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="recent-claims-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Member</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-claims-body">
+                            <!-- Populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="/claims" class="btn btn-sm btn-primary">View All Claims</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">High Risk Members</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="high-risk-members-table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Risk Score</th>
+                                <th>Care Gaps</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="high-risk-members-body">
+                            <!-- Populated via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a href="/members" class="btn btn-sm btn-primary">View All Members</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Additional Insights -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Top Diagnoses</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="diagnosesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Authorization Types</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="authTypesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Member Age Distribution</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="ageDistributionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Load statistics
+        $.getJSON('/api/statistics', function(data) {
+            $('#member-count').text(data.member_count.toLocaleString());
+            $('#claim-count').text(data.claim_count.toLocaleString());
+            $('#note-count').text(data.clinical_note_count.toLocaleString());
+            $('#auth-count').text(data.authorization_count.toLocaleString());
+            
+            // Initialize charts
+            initClaimsChart(data.claims_by_month);
+            initClaimStatusChart(data.claim_status_distribution);
+            
+            // If available, initialize additional charts
+            if (data.top_diagnoses) {
+                initDiagnosesChart(data.top_diagnoses);
+            }
+            
+            if (data.authorization_types) {
+                initAuthTypesChart(data.authorization_types);
+            }
+            
+            if (data.member_age_distribution) {
+                initAgeDistributionChart(data.member_age_distribution);
+            }
+            
+            // Load recent claims
+            loadRecentClaims();
+            
+            // Load high risk members
+            loadHighRiskMembers();
+        }).fail(function() {
+            // Handle error
+            console.error("Failed to load statistics data");
+            $('.chart-container').html('<div class="alert alert-danger">Failed to load chart data</div>');
+        });
+        
+        // Period selector for claims chart
+        $('.btn-group .btn[data-period]').click(function() {
+            $('.btn-group .btn').removeClass('active');
+            $(this).addClass('active');
+            
+            const period = $(this).data('period');
+            // Reload chart data based on selected period
+            $.getJSON(`/api/statistics?period=${period}`, function(data) {
+                updateClaimsChart(data.claims_by_period || data.claims_by_month);
+            });
+        });
+        
+        function initClaimsChart(claimsData) {
+            const ctx = document.getElementById('claimsChart').getContext('2d');
+            window.claimsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: claimsData.map(item => item.month),
+                    datasets: [{
+                        label: 'Claims',
+                        data: claimsData.map(item => item.count),
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateClaimsChart(claimsData) {
+            window.claimsChart.data.labels = claimsData.map(item => item.period);
+            window.claimsChart.data.datasets[0].data = claimsData.map(item => item.count);
+            window.claimsChart.update();
+        }
+        
+        function initClaimStatusChart(statusData) {
+            const ctx = document.getElementById('claimStatusChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusData.map(item => item.status),
+                    datasets: [{
+                        data: statusData.map(item => item.count),
+                        backgroundColor: [
+                            'rgba(46, 204, 113, 0.8)',
+                            'rgba(231, 76, 60, 0.8)',
+                            'rgba(243, 156, 18, 0.8)',
+                            'rgba(52, 152, 219, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+        
+        function initDiagnosesChart(diagnosesData) {
+            const ctx = document.getElementById('diagnosesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: diagnosesData.map(item => item.code),
+                    datasets: [{
+                        label: 'Frequency',
+                        data: diagnosesData.map(item => item.count),
+                        backgroundColor: 'rgba(26, 188, 156, 0.8)',
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const index = tooltipItems[0].dataIndex;
+                                    return diagnosesData[index].code + ': ' + diagnosesData[index].description;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initAuthTypesChart(authTypesData) {
+            const ctx = document.getElementById('authTypesChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: authTypesData.map(item => item.type),
+                    datasets: [{
+                        data: authTypesData.map(item => item.count),
+                        backgroundColor: [
+                            'rgba(52, 152, 219, 0.8)',
+                            'rgba(155, 89, 182, 0.8)',
+                            'rgba(52, 73, 94, 0.8)',
+                            'rgba(22, 160, 133, 0.8)',
+                            'rgba(241, 196, 15, 0.8)'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initAgeDistributionChart(ageData) {
+            const ctx = document.getElementById('ageDistributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ageData.map(item => item.range),
+                    datasets: [{
+                        label: 'Members',
+                        data: ageData.map(item => item.count),
+                        backgroundColor: 'rgba(41, 128, 185, 0.8)',
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function loadRecentClaims() {
+            $.getJSON('/api/claims', function(claims) {
+                // Sort by date (newest first) and take top 5
+                const recentClaims = claims
+                    .sort((a, b) => new Date(b.date_received || b.submission_date) - new Date(a.date_received || a.submission_date))
+                    .slice(0, 5);
+                
+                let html = '';
+                recentClaims.forEach(claim => {
+                    let statusBadge = 'bg-warning';
+                    if (claim.status === 'Paid') statusBadge = 'bg-success';
+                    else if (claim.status === 'Denied') statusBadge = 'bg-danger';
+                    
+                    html += `
+                        <tr>
+                            <td><a href="/claims?id=${claim.id}">${claim.id.substring(0, 8)}...</a></td>
+                            <td>${claim.member_id}</td>
+                            <td>${formatCurrency(claim.total_amount || claim.total_charge)}</td>
+                            <td><span class="badge ${statusBadge}">${claim.status}</span></td>
+                            <td>${formatDate(claim.date_received || claim.submission_date)}</td>
+                        </tr>
+                    `;
+                });
+                
+                $('#recent-claims-body').html(html);
+            }).fail(function() {
+                $('#recent-claims-body').html('<tr><td colspan="5" class="text-center">Failed to load recent claims</td></tr>');
+            });
+        }
+        
+        function loadHighRiskMembers() {
+            $.getJSON('/api/members', function(members) {
+                // Sort by risk score (highest first) and take top 5
+                const highRiskMembers = members
+                    .filter(member => member.risk_score !== undefined)
+                    .sort((a, b) => b.risk_score - a.risk_score)
+                    .slice(0, 5);
+                
+                let html = '';
+                highRiskMembers.forEach(member => {
+                    const careGapCount = member.care_gaps ? member.care_gaps.length : 0;
+                    
+                    html += `
+                        <tr>
+                            <td><a href="/member/${member.id}">${member.first_name} ${member.last_name}</a></td>
+                            <td><span class="badge bg-danger">${parseFloat(member.risk_score).toFixed(2)}</span></td>
+                            <td>${careGapCount}</td>
+                            <td><a href="/member/${member.id}" class="btn btn-sm btn-outline-primary">View</a></td>
+                        </tr>
+                    `;
+                });
+                
+                $('#high-risk-members-body').html(html);
+            }).fail(function() {
+                $('#high-risk-members-body').html('<tr><td colspan="4" class="text-center">Failed to load high risk members</td></tr>');
+            });
+        }
+        
+        // Helper functions
+        function formatCurrency(value) {
+            if (value === undefined || value === null) return 'N/A';
+            return '$' + parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+        
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return dateString; // Return original if invalid
+            return date.toLocaleDateString();
+        }
+    });
+</script>
+{% endblock %}
