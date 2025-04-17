@@ -188,6 +188,7 @@ $(document).ready(function() {
         renderAuthorizationsTab(data.authorizations || []);
         loadAndRenderEOBs(memberId);
         renderClinicalNotesTab(data.clinical_notes || []);
+        renderClinicalEncountersTab(data.clinical_encounters || []);
         renderCarePlansTab(data.care_plans || []);
         renderCommunicationsTab(data.communications || []);
         loadAndRenderPatientData(memberId);
@@ -206,6 +207,7 @@ $(document).ready(function() {
         $('#claims-tab').text(`Claims (${data.claims ? data.claims.length : 0})`);
         $('#authorizations-tab').text(`Authorizations (${data.authorizations ? data.authorizations.length : 0})`);
         $('#clinical-notes-tab').text(`Clinical Notes (${data.clinical_notes ? data.clinical_notes.length : 0})`);
+        $('#clinical-encounters-tab').text(`Clinical Encounters (${data.clinical_encounters ? data.clinical_encounters.length : 0})`);
         $('#care-plans-tab').text(`Care Plans (${data.care_plans ? data.care_plans.length : 0})`);
         $('#communications-tab').text(`Communications (${data.communications ? data.communications.length : 0})`);
         $('#care-episodes-tab').text(`Care Episodes (${data.care_episodes ? data.care_episodes.length : 0})`);
@@ -1243,6 +1245,266 @@ $(document).ready(function() {
     }
     
     // Function to render note details in modal
+    function renderClinicalEncountersTab(encounters) {
+        if (encounters.length === 0) {
+            $('#clinical-encounters-content').html('<div class="alert alert-info">No clinical encounters found for this member.</div>');
+            return;
+        }
+        
+        $('#clinical-encounters-content').html(`
+            <div class="table-responsive">
+                <table class="table table-striped" id="clinical-encounters-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${encounters.map(encounter => `
+                            <tr>
+                                <td>${encounter.id}</td>
+                                <td>${formatDate(encounter.start_datetime)}</td>
+                                <td>${encounter.end_datetime ? formatDate(encounter.end_datetime) : 'Ongoing'}</td>
+                                <td>${encounter.type || 'N/A'}</td>
+                                <td>${formatStatusBadge(encounter.status, 'encounter')}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary view-encounter" data-encounter-id="${encounter.id}">
+                                        View Details
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `);
+        
+        // Initialize DataTable
+        initDataTable('clinical-encounters-table');
+        
+        // Add event listener for view encounter button - use delegated event handling
+        $(document).off('click', '.view-encounter').on('click', '.view-encounter', function() {
+            console.log("Clinical Encounter View button clicked");
+            const encounterId = $(this).data('encounter-id');
+            console.log("Encounter ID:", encounterId);
+            
+            // Try to find the encounter in the data
+            let encounter = encounters.find(e => String(e.id) === String(encounterId));
+            
+            if (encounter) {
+                console.log("Found encounter in data:", encounter);
+                renderEncounterDetails(encounter);
+                $('#encounterDetailModal').modal('show');
+            } else {
+                console.log("Encounter not found in data, fetching from API...");
+                // If not found in data, fetch it directly from the API
+                $.getJSON(`/api/clinical-encounters/${encounterId}`, function(data) {
+                    console.log("Fetched encounter from API:", data);
+                    renderEncounterDetails(data);
+                    $('#encounterDetailModal').modal('show');
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error fetching encounter:", textStatus, errorThrown);
+                    alert("Error loading clinical encounter details. Please try again.");
+                });
+            }
+        });
+    }
+    
+    function renderEncounterDetails(encounter) {
+        let html = `
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Encounter Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Encounter ID:</th>
+                                    <td>${encounter.id}</td>
+                                </tr>
+                                <tr>
+                                    <th>Start Date:</th>
+                                    <td>${formatDate(encounter.start_datetime)}</td>
+                                </tr>
+                                <tr>
+                                    <th>End Date:</th>
+                                    <td>${encounter.end_datetime ? formatDate(encounter.end_datetime) : 'Ongoing'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Length of Stay:</th>
+                                    <td>${encounter.length_of_stay ? encounter.length_of_stay + ' days' : 'N/A'}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Type:</th>
+                                    <td>${encounter.type || 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>${formatStatusBadge(encounter.status, 'encounter')}</td>
+                                </tr>
+                                <tr>
+                                    <th>Class:</th>
+                                    <td>${encounter.class_type || 'N/A'}</td>
+                                </tr>
+                                <tr>
+                                    <th>Chief Complaint:</th>
+                                    <td>${encounter.chief_complaint || 'N/A'}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Participants
+        if (encounter.participants && encounter.participants.length > 0) {
+            html += `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Participants</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>ID</th>
+                                        <th>Role</th>
+                                        <th>Start</th>
+                                        <th>End</th>
+                                        <th>Primary</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            encounter.participants.forEach(participant => {
+                html += `
+                    <tr>
+                        <td>${participant.participant_type}</td>
+                        <td>${participant.participant_id}</td>
+                        <td>${participant.role || 'N/A'}</td>
+                        <td>${formatDate(participant.start_datetime)}</td>
+                        <td>${participant.end_datetime ? formatDate(participant.end_datetime) : 'Ongoing'}</td>
+                        <td>${participant.primary ? 'Yes' : 'No'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Diagnoses
+        if (encounter.diagnoses && encounter.diagnoses.length > 0) {
+            html += `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Diagnoses</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Description</th>
+                                        <th>Type</th>
+                                        <th>Present on Admission</th>
+                                        <th>Rank</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            encounter.diagnoses.forEach(diagnosis => {
+                html += `
+                    <tr>
+                        <td>${diagnosis.diagnosis_code}</td>
+                        <td>${diagnosis.diagnosis_description}</td>
+                        <td>${diagnosis.diagnosis_type || 'N/A'}</td>
+                        <td>${diagnosis.present_on_admission ? 'Yes' : 'No'}</td>
+                        <td>${diagnosis.rank || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Procedures
+        if (encounter.procedures && encounter.procedures.length > 0) {
+            html += `
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Procedures</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Description</th>
+                                        <th>Date</th>
+                                        <th>Duration</th>
+                                        <th>Provider</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+            `;
+            
+            encounter.procedures.forEach(procedure => {
+                html += `
+                    <tr>
+                        <td>${procedure.procedure_code}</td>
+                        <td>${procedure.procedure_description}</td>
+                        <td>${formatDate(procedure.datetime)}</td>
+                        <td>${procedure.duration_minutes ? procedure.duration_minutes + ' min' : 'N/A'}</td>
+                        <td>${procedure.provider_id || 'N/A'}</td>
+                        <td>${formatStatusBadge(procedure.status, 'procedure')}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        $('#encounter-detail-content').html(html);
+        $('#encounterDetailModalLabel').text(`Clinical Encounter: ${encounter.id}`);
+    }
+
     function renderNoteDetails(note) {
         console.log("Rendering note details:", note);
         

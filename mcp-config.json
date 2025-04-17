@@ -1,0 +1,20 @@
+﻿{
+    "mcpServers":  {
+                       "filesystem":  {
+                                          "description":  "Provides access to the local filesystem.",
+                                          "basePath":  "\u003cSpecify base path if needed, e.g., project root or specific data folder\u003e",
+                                          "enabled":  false
+                                      },
+                       "braveSearch":  {
+                                           "description":  "Provides web search capabilities via Brave Search API.",
+                                           "apiKeyEnvVar":  "BRAVE_SEARCH_API_KEY",
+                                           "enabled":  false
+                                       },
+                       "git":  {
+                                   "repoPath":  "\u003cSpecify path to the Git repository, defaults to project root if empty\u003e",
+                                   "credentialsEnvVar":  "\u003cOptional: Environment variable name for Git credentials\u003e",
+                                   "description":  "Provides Git repository operations.",
+                                   "enabled":  false
+                               }
+                   }
+}

@@ -108,6 +108,11 @@ def clinical_notes_page():
     """Render the clinical notes page."""
     return render_template('clinical_notes.html')
 
+@app.route('/clinical-encounters')
+def clinical_encounters_page():
+    """Render the clinical encounters page."""
+    return render_template('clinical_encounters.html')
+
 @app.route('/care-plans')
 def care_plans_page():
     """Render the care plans page."""
@@ -252,6 +257,27 @@ def get_clinical_note(note_id):
     for note in notes:
         if note.get('id') == note_id:
             return jsonify(note)
+    
+    abort(404)
+
+@app.route('/api/clinical-encounters')
+def get_clinical_encounters():
+    """API endpoint to get clinical encounter data."""
+    encounters = load_json_data(os.path.join(PROCESSED_DIR, 'clinical_encounters.json'))
+    if encounters is None:
+        abort(500)
+    return jsonify(encounters)
+
+@app.route('/api/clinical-encounters/<encounter_id>')
+def get_clinical_encounter(encounter_id):
+    """API endpoint to get a specific clinical encounter's data."""
+    encounters = load_json_data(os.path.join(PROCESSED_DIR, 'clinical_encounters.json'))
+    if encounters is None:
+        abort(500)
+    
+    for encounter in encounters:
+        if encounter.get('id') == encounter_id:
+            return jsonify(encounter)
     
     abort(404)
 
@@ -735,6 +761,7 @@ def get_member_related_data(member_id):
         claims = load_json_data(os.path.join(PROCESSED_DIR, 'claims.json')) or []
         authorizations = load_json_data(os.path.join(PROCESSED_DIR, 'authorizations.json')) or []
         clinical_notes = load_json_data(os.path.join(PROCESSED_DIR, 'clinical_notes.json')) or []
+        clinical_encounters = load_json_data(os.path.join(PROCESSED_DIR, 'clinical_encounters.json')) or []
         care_plans = load_json_data(os.path.join(PROCESSED_DIR, 'care_plans.json')) or []
         communications = load_json_data(os.path.join(PROCESSED_DIR, 'communications.json')) or []
         eobs = load_json_data(os.path.join(PROCESSED_DIR, 'eobs.json')) or []
@@ -778,6 +805,7 @@ def get_member_related_data(member_id):
         member_claims = [c for c in claims if c.get('member_id') == member_id]
         member_auths = [a for a in authorizations if a.get('member_id') == member_id]
         member_notes = [n for n in clinical_notes if n.get('member_id') == member_id]
+        member_encounters = [e for e in clinical_encounters if e.get('member_id') == member_id]
         member_plans = [p for p in care_plans if p.get('member_id') == member_id]
         
         # Process communications to add sender and recipient fields
@@ -858,6 +886,7 @@ def get_member_related_data(member_id):
             'claims': member_claims,
             'authorizations': member_auths,
             'clinical_notes': member_notes,
+            'clinical_encounters': member_encounters,
             'care_plans': member_plans,
             'communications': member_comms,
             'eobs': member_eobs,
@@ -899,6 +928,7 @@ def get_member_related_data(member_id):
             'claims': [],
             'authorizations': [],
             'clinical_notes': [],
+            'clinical_encounters': [],
             'care_plans': [],
             'communications': [],
             'eobs': [],

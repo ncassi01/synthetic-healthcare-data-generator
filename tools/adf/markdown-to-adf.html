@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown to ADF Converter</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #172B4D;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 { font-size: 24px; margin-top: 24px; margin-bottom: 16px; }
+        h2 { font-size: 20px; margin-top: 24px; margin-bottom: 16px; }
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        .column {
+            flex: 1;
+            min-width: 0;
+        }
+        textarea {
+            width: 100%;
+            height: 500px;
+            font-family: monospace;
+            padding: 10px;
+            border: 1px solid #DFE1E6;
+            border-radius: 3px;
+            resize: vertical;
+        }
+        button {
+            background-color: #0052CC;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0747A6;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        #preview {
+            border: 1px solid #DFE1E6;
+            border-radius: 3px;
+            padding: 10px;
+            height: 500px;
+            overflow: auto;
+            background-color: white;
+        }
+        pre {
+            background-color: #F4F5F7;
+            border-radius: 3px;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.9em;
+        }
+        .panel {
+            border-radius: 3px;
+            margin-bottom: 16px;
+            padding: 16px;
+        }
+        .panel-info {
+            background-color: #DEEBFF;
+            border-left: 4px solid #0052CC;
+        }
+    </style>
+</head>
+<body>
+    <h1>Markdown to ADF Converter</h1>
+    
+    <div class="panel panel-info">
+        <p>This tool converts Markdown to Atlassian Document Format (ADF). Enter your Markdown in the left panel and click "Convert" to see the ADF JSON in the right panel.</p>
+        <p>Supported Markdown features:</p>
+        <ul>
+            <li>Headings (# to ######)</li>
+            <li>Paragraphs</li>
+            <li>Bold (**text**)</li>
+            <li>Italic (*text*)</li>
+            <li>Code blocks (```language)</li>
+            <li>Inline code (`code`)</li>
+            <li>Bullet lists</li>
+            <li>Numbered lists</li>
+            <li>Links [text](url)</li>
+        </ul>
+    </div>
+    
+    <div class="controls">
+        <button id="convert-btn">Convert to ADF</button>
+        <button id="copy-btn">Copy ADF to Clipboard</button>
+        <button id="view-btn">View in ADF Viewer</button>
+        <button id="load-example">Load Example</button>
+    </div>
+    
+    <div class="container">
+        <div class="column">
+            <h2>Markdown Input</h2>
+            <textarea id="markdown-input" placeholder="Enter your Markdown here..."></textarea>
+        </div>
+        <div class="column">
+            <h2>ADF Output</h2>
+            <textarea id="adf-output" readonly></textarea>
+        </div>
+    </div>
+    
+    <div id="preview" style="display: none;"></div>
+
+    <script>
+        // Example Markdown
+        const exampleMarkdown = `# Markdown Example
+
+This is a paragraph with **bold** and *italic* text.
+
+## Lists
+
+### Bullet List
+- Item 1
+- Item 2
+- Item 3
+
+### Numbered List
+1. First item
+2. Second item
+3. Third item
+
+## Code Example
+
+\`\`\`javascript
+function hello() {
+  console.log("Hello, ADF!");
+}
+\`\`\`
+
+## Links
+
+[Atlassian](https://atlassian.com)
+`;
+
+        // DOM Elements
+        const markdownInput = document.getElementById('markdown-input');
+        const adfOutput = document.getElementById('adf-output');
+        const convertBtn = document.getElementById('convert-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const viewBtn = document.getElementById('view-btn');
+        const loadExampleBtn = document.getElementById('load-example');
+        const preview = document.getElementById('preview');
+
+        // Event Listeners
+        convertBtn.addEventListener('click', convertMarkdownToADF);
+        copyBtn.addEventListener('click', copyToClipboard);
+        viewBtn.addEventListener('click', viewInADFViewer);
+        loadExampleBtn.addEventListener('click', loadExample);
+
+        function loadExample() {
+            markdownInput.value = exampleMarkdown;
+            convertMarkdownToADF();
+        }
+
+        function copyToClipboard() {
+            adfOutput.select();
+            document.execCommand('copy');
+            alert('ADF JSON copied to clipboard!');
+        }
+
+        function viewInADFViewer() {
+            try {
+                const adfJson = adfOutput.value;
+                if (!adfJson) {
+                    alert('Please convert Markdown to ADF first.');
+                    return;
+                }
+                
+                // Store the ADF in localStorage
+                localStorage.setItem('tempADF', adfJson);
+                
+                // Open the ADF viewer in a new tab
+                window.open('adf-viewer.html?source=temp', '_blank');
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+        function convertMarkdownToADF() {
+            const markdown = markdownInput.value;
+            if (!markdown) {
+                alert('Please enter some Markdown text.');
+                return;
+            }
+            
+            try {
+                const adf = parseMarkdownToADF(markdown);
+                adfOutput.value = JSON.stringify(adf, null, 2);
+            } catch (error) {
+                alert(`Error converting Markdown to ADF: ${error.message}`);
+            }
+        }
+
+        function parseMarkdownToADF(markdown) {
+            // Initialize ADF document
+            const adf = {
+                version: 1,
+                type: 'doc',
+                content: []
+            };
+            
+            // Split markdown into lines
+            const lines = markdown.split('\n');
+            
+            // Process lines
+            let i = 0;
+            while (i < lines.length) {
+                const line = lines[i].trim();
+                
+                // Skip empty lines
+                if (!line) {
+                    i++;
+                    continue;
+                }
+                
+                // Headings
+                if (line.startsWith('#')) {
+                    const match = line.match(/^(#{1,6})\s+(.+)$/);
+                    if (match) {
+                        const level = match[1].length;
+                        const text = match[2];
+                        adf.content.push({
+                            type: 'heading',
+                            attrs: {
+                                level
+                            },
+                            content: [
+                                {
+                                    type: 'text',
+                                    text
+                                }
+                            ]
+                        });
+                    }
+                    i++;
+                    continue;
+                }
+                
+                // Code blocks
+                if (line.startsWith('```')) {
+                    const language = line.substring(3).trim();
+                    let codeContent = '';
+                    i++;
+                    
+                    while (i < lines.length && !lines[i].trim().startsWith('```')) {
+                        codeContent += lines[i] + '\n';
+                        i++;
+                    }
+                    
+                    adf.content.push({
+                        type: 'codeBlock',
+                        attrs: {
+                            language: language || 'plain'
+                        },
+                        content: [
+                            {
+                                type: 'text',
+                                text: codeContent
+                            }
+                        ]
+                    });
+                    
+                    i++; // Skip the closing ```
+                    continue;
+                }
+                
+                // Bullet lists
+                if (line.match(/^[-*]\s+/)) {
+                    const bulletList = {
+                        type: 'bulletList',
+                        content: []
+                    };
+                    
+                    while (i < lines.length && lines[i].trim().match(/^[-*]\s+/)) {
+                        const text = lines[i].trim().replace(/^[-*]\s+/, '');
+                        bulletList.content.push({
+                            type: 'listItem',
+                            content: [
+                                {
+                                    type: 'paragraph',
+                                    content: parseInlineMarkdown(text)
+                                }
+                            ]
+                        });
+                        i++;
+                    }
+                    
+                    adf.content.push(bulletList);
+                    continue;
+                }
+                
+                // Numbered lists
+                if (line.match(/^\d+\.\s+/)) {
+                    const orderedList = {
+                        type: 'orderedList',
+                        content: []
+                    };
+                    
+                    while (i < lines.length && lines[i].trim().match(/^\d+\.\s+/)) {
+                        const text = lines[i].trim().replace(/^\d+\.\s+/, '');
+                        orderedList.content.push({
+                            type: 'listItem',
+                            content: [
+                                {
+                                    type: 'paragraph',
+                                    content: parseInlineMarkdown(text)
+                                }
+                            ]
+                        });
+                        i++;
+                    }
+                    
+                    adf.content.push(orderedList);
+                    continue;
+                }
+                
+                // Paragraphs (default)
+                adf.content.push({
+                    type: 'paragraph',
+                    content: parseInlineMarkdown(line)
+                });
+                
+                i++;
+            }
+            
+            return adf;
+        }
+
+        function parseInlineMarkdown(text) {
+            const content = [];
+            
+            // Process the text for inline formatting
+            let currentIndex = 0;
+            let currentText = '';
+            
+            // Helper function to add accumulated text
+            function addCurrentText() {
+                if (currentText) {
+                    content.push({
+                        type: 'text',
+                        text: currentText
+                    });
+                    currentText = '';
+                }
+            }
+            
+            while (currentIndex < text.length) {
+                // Bold (**text**)
+                if (text.substr(currentIndex, 2) === '**' && 
+                    text.indexOf('**', currentIndex + 2) !== -1) {
+                    
+                    addCurrentText();
+                    
+                    const startIndex = currentIndex + 2;
+                    const endIndex = text.indexOf('**', startIndex);
+                    const boldText = text.substring(startIndex, endIndex);
+                    
+                    content.push({
+                        type: 'text',
+                        text: boldText,
+                        marks: [
+                            {
+                                type: 'strong'
+                            }
+                        ]
+                    });
+                    
+                    currentIndex = endIndex + 2;
+                    continue;
+                }
+                
+                // Italic (*text*)
+                if (text[currentIndex] === '*' && 
+                    text.indexOf('*', currentIndex + 1) !== -1) {
+                    
+                    addCurrentText();
+                    
+                    const startIndex = currentIndex + 1;
+                    const endIndex = text.indexOf('*', startIndex);
+                    const italicText = text.substring(startIndex, endIndex);
+                    
+                    content.push({
+                        type: 'text',
+                        text: italicText,
+                        marks: [
+                            {
+                                type: 'em'
+                            }
+                        ]
+                    });
+                    
+                    currentIndex = endIndex + 1;
+                    continue;
+                }
+                
+                // Inline code (`code`)
+                if (text[currentIndex] === '`' && 
+                    text.indexOf('`', currentIndex + 1) !== -1) {
+                    
+                    addCurrentText();
+                    
+                    const startIndex = currentIndex + 1;
+                    const endIndex = text.indexOf('`', startIndex);
+                    const codeText = text.substring(startIndex, endIndex);
+                    
+                    content.push({
+                        type: 'text',
+                        text: codeText,
+                        marks: [
+                            {
+                                type: 'code'
+                            }
+                        ]
+                    });
+                    
+                    currentIndex = endIndex + 1;
+                    continue;
+                }
+                
+                // Links [text](url)
+                if (text[currentIndex] === '[' && 
+                    text.indexOf('](', currentIndex) !== -1 && 
+                    text.indexOf(')', text.indexOf('](', currentIndex)) !== -1) {
+                    
+                    addCurrentText();
+                    
+                    const textStartIndex = currentIndex + 1;
+                    const textEndIndex = text.indexOf('](', currentIndex);
+                    const linkText = text.substring(textStartIndex, textEndIndex);
+                    
+                    const urlStartIndex = textEndIndex + 2;
+                    const urlEndIndex = text.indexOf(')', urlStartIndex);
+                    const url = text.substring(urlStartIndex, urlEndIndex);
+                    
+                    content.push({
+                        type: 'text',
+                        text: linkText,
+                        marks: [
+                            {
+                                type: 'link',
+                                attrs: {
+                                    href: url
+                                }
+                            }
+                        ]
+                    });
+                    
+                    currentIndex = urlEndIndex + 1;
+                    continue;
+                }
+                
+                // Regular text
+                currentText += text[currentIndex];
+                currentIndex++;
+            }
+            
+            // Add any remaining text
+            addCurrentText();
+            
+            return content;
+        }
+
+        // Check if we're being loaded from the ADF viewer
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.location.search.includes('source=temp')) {
+                const tempADF = localStorage.getItem('tempADF');
+                if (tempADF) {
+                    try {
+                        const adfDoc = JSON.parse(tempADF);
+                        renderADF(adfDoc);
+                        localStorage.removeItem('tempADF'); // Clean up
+                    } catch (error) {
+                        console.error('Error parsing ADF:', error);
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

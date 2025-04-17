@@ -8,6 +8,7 @@ import argparse
 import json
 import logging
 import os
+import random
 import sys
 from typing import Dict, List, Any, Union
 
@@ -23,6 +24,7 @@ from src.generators.clinical_note_generator import ClinicalNoteGenerator
 from src.generators.communication_generator import CommunicationGenerator
 from src.generators.care_plan_generator import CarePlanGenerator
 from src.generators.authorization_rationale_generator import AuthorizationRationaleGenerator
+from src.generators.clinical_encounter_generator import ClinicalEncounterGenerator
 
 # Import unstructured data generators (Phase 6)
 from src.unstructured.patient_generated import PatientGeneratedHealthDataGenerator
@@ -871,6 +873,88 @@ def generate_telehealth_documentation(config: Dict, members: List[Dict], seed: i
     return th_entries
 
 
+def generate_clinical_encounters(config: Dict, members: List[Dict], seed: int = None) -> List[Dict]:
+    """
+    Generate synthetic clinical encounters and related entities.
+    
+    Args:
+        config: Configuration dictionary.
+        members: List of member dictionaries to generate encounters for.
+        seed: Random seed (overrides config).
+        
+    Returns:
+        List of generated clinical encounter objects.
+    """
+    # Get encounter count from config
+    encounter_config = config.get('clinical_encounter_config', {})
+    encounter_count_config = encounter_config.get('encounters_per_member', {
+        'min': 1,
+        'max': 5,
+        'mean': 3,
+        'std_dev': 1
+    })
+    
+    # Calculate total encounters to generate
+    mean_encounters_per_member = encounter_count_config.get('mean', 3)
+    total_encounters = int(len(members) * mean_encounters_per_member)
+    
+    # Get seed from arguments or config
+    if seed is None:
+        seed = config.get('data_generation', {}).get('seed', 42)
+    
+    logger.info(f"Generating approximately {total_encounters} clinical encounters with seed {seed}")
+    
+    # Create clinical encounter generator
+    encounter_generator = ClinicalEncounterGenerator(config, seed)
+    
+    # Generate provider dictionaries for clinical encounters
+    providers = []
+    for i in range(20):  # Generate 20 providers
+        provider_id = f"PRV{i:08d}"
+        provider = {
+            "id": provider_id,
+            "name": f"Provider {i}",
+            "specialty": random.choice(["Family Medicine", "Internal Medicine", "Cardiology", "Neurology", "Orthopedics"])
+        }
+        providers.append(provider)
+    
+    # Generate clinical encounters
+    encounters = encounter_generator.generate(members, providers)
+    
+    logger.info(f"Generated {len(encounters)} clinical encounters with related entities")
+    
+    return encounters
+
+
+def save_clinical_data(data: List[Dict], data_type: str, output_dir: str, skip_raw: bool = False) -> None:
+    """
+    Save generated clinical data to JSON files.
+    
+    Args:
+        data: List of clinical data objects to save.
+        data_type: Type of data (encounters, participants, locations, etc.).
+        output_dir: Output directory.
+        skip_raw: Whether to skip saving raw data.
+    """
+    if not data:
+        logger.warning(f"No {data_type} data to save")
+        return
+    
+    # Convert objects to dictionaries if they're not already
+    if hasattr(data[0], 'to_dict'):
+        data_dicts = [item.to_dict() for item in data]
+    else:
+        data_dicts = data
+    
+    if not skip_raw:
+        # Save raw data
+        raw_output_path = get_output_path(os.path.join(output_dir, 'raw'), f'clinical_{data_type}.json')
+        with open(raw_output_path, 'w') as f:
+            json.dump(data_dicts, f, indent=2)
+        
+        logger.info(f"Saved {len(data)} clinical {data_type} to {raw_output_path}")
+
+
 def save_unstructured_data(data: List[Dict], data_type: str, output_dir: str, skip_raw: bool = False) -> None:
     """
     Save generated unstructured data to JSON files.
@@ -899,6 +983,45 @@ def save_unstructured_data(data: List[Dict], data_type: str, output_dir: str, sk
         json.dump(data, f, indent=2)
     
     logger.info(f"Saved {len(data)} {data_type} to {processed_output_path}")
+
+
+def process_clinical_data(data: List[Dict], data_type: str, config: Dict, output_dir: str) -> List[Dict]:
+    """
+    Process and enrich clinical data.
+    
+    Args:
+        data: List of clinical data objects to process.
+        data_type: Type of data (encounters, participants, locations, etc.).
+        config: Configuration dictionary.
+        output_dir: Output directory.
+        
+    Returns:
+        List of processed clinical data objects.
+    """
+    if not data:
+        logger.warning(f"No clinical {data_type} data to process")
+        return []
+    
+    logger.info(f"Processing and enriching clinical {data_type} data")
+    
+    # For now, we just pass through the data without processing
+    # In the future, this could be expanded to include validation, enrichment, etc.
+    processed_data = data
+    
+    # Convert processed data to dictionaries if they're not already
+    if hasattr(processed_data[0], 'to_dict'):
+        processed_data_dicts = [item.to_dict() for item in processed_data]
+    else:
+        processed_data_dicts = processed_data
+    
+    # Save processed data
+    processed_output_path = get_output_path(os.path.join(output_dir, 'processed'), f'clinical_{data_type}.json')
+    with open(processed_output_path, 'w') as f:
+        json.dump(processed_data_dicts, f, indent=2)
+    
+    logger.info(f"Saved {len(processed_data)} processed clinical {data_type} to {processed_output_path}")
+    
+    return processed_data
 
 
 def main():
@@ -1025,6 +1148,54 @@ def main():
         
         if args.process or config.get('processor_config', {}).get('enabled', False):
             processed_auth_rationales = process_narrative_data(auth_rationales, 'authorization_rationales', config, args.output)
+        
+        # Generate Clinical Domain data
+        logger.info("Generating Clinical Domain data")
+        
+        # Generate clinical encounters and related entities
+        clinical_encounters = generate_clinical_encounters(config, member_dicts, args.seed)
+        save_clinical_data(clinical_encounters, 'encounters', args.output, args.skip_raw)
+        
+        if args.process or config.get('processor_config', {}).get('enabled', False):
+            processed_clinical_encounters = process_clinical_data(clinical_encounters, 'encounters', config, args.output)
+            
+            # Extract and save related entities from processed encounters
+            participants = []
+            locations = []
+            diagnoses = []
+            procedures = []
+            services = []
+            assessments = []
+            medications = []
+            transitions = []
+            
+            for encounter in processed_clinical_encounters:
+                if 'participants' in encounter:
+                    participants.extend(encounter['participants'])
+                if 'locations' in encounter:
+                    locations.extend(encounter['locations'])
+                if 'diagnoses' in encounter:
+                    diagnoses.extend(encounter['diagnoses'])
+                if 'procedures' in encounter:
+                    procedures.extend(encounter['procedures'])
+                if 'services' in encounter:
+                    services.extend(encounter['services'])
+                if 'assessments' in encounter:
+                    assessments.extend(encounter['assessments'])
+                if 'medications' in encounter:
+                    medications.extend(encounter['medications'])
+                if 'transitions' in encounter:
+                    transitions.extend(encounter['transitions'])
+            
+            # Save related entities
+            save_clinical_data(participants, 'participants', args.output, args.skip_raw)
+            save_clinical_data(locations, 'locations', args.output, args.skip_raw)
+            save_clinical_data(diagnoses, 'diagnoses', args.output, args.skip_raw)
+            save_clinical_data(procedures, 'procedures', args.output, args.skip_raw)
+            save_clinical_data(services, 'services', args.output, args.skip_raw)
+            save_clinical_data(assessments, 'assessments', args.output, args.skip_raw)
+            save_clinical_data(medications, 'medications', args.output, args.skip_raw)
+            save_clinical_data(transitions, 'transitions', args.output, args.skip_raw)
         
         # Generate expanded unstructured data (Phase 6)
         logger.info("Generating expanded unstructured data (Phase 6)")
