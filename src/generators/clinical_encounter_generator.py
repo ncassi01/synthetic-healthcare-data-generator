@@ -292,6 +292,136 @@ class ClinicalEncounterGenerator(BaseGenerator):
             ]
         }
         
+        # Common procedures by encounter type
+        self.procedures = {
+            EncounterType.INPATIENT: [
+                {"code": "33533", "description": "Coronary artery bypass, using arterial graft"},
+                {"code": "47562", "description": "Laparoscopic cholecystectomy"},
+                {"code": "44950", "description": "Appendectomy"},
+                {"code": "27447", "description": "Total knee arthroplasty"},
+                {"code": "27130", "description": "Total hip arthroplasty"},
+                {"code": "43239", "description": "Upper GI endoscopy, biopsy"},
+                {"code": "45378", "description": "Colonoscopy, diagnostic"},
+                {"code": "36415", "description": "Routine venipuncture"},
+                {"code": "71045", "description": "X-ray, chest, single view"},
+                {"code": "93306", "description": "Echocardiography, complete"}
+            ],
+            EncounterType.AMBULATORY: [
+                {"code": "99213", "description": "Office/outpatient visit, established patient"},
+                {"code": "20610", "description": "Arthrocentesis, major joint"},
+                {"code": "29125", "description": "Application of short arm splint"},
+                {"code": "11042", "description": "Debridement, subcutaneous tissue"},
+                {"code": "17000", "description": "Destruction of premalignant lesion"},
+                {"code": "36415", "description": "Routine venipuncture"},
+                {"code": "71046", "description": "X-ray, chest, 2 views"},
+                {"code": "93000", "description": "Electrocardiogram, complete"}
+            ],
+            EncounterType.EMERGENCY: [
+                {"code": "31500", "description": "Endotracheal intubation"},
+                {"code": "12001", "description": "Simple suture, 2.5 cm or less"},
+                {"code": "29125", "description": "Application of short arm splint"},
+                {"code": "36415", "description": "Routine venipuncture"},
+                {"code": "71045", "description": "X-ray, chest, single view"},
+                {"code": "70450", "description": "CT scan, head/brain, without contrast"},
+                {"code": "43752", "description": "Nasogastric tube placement"},
+                {"code": "96360", "description": "IV infusion, hydration, initial"}
+            ],
+            EncounterType.OBSERVATION: [
+                {"code": "36415", "description": "Routine venipuncture"},
+                {"code": "71046", "description": "X-ray, chest, 2 views"},
+                {"code": "93005", "description": "Electrocardiogram, tracing only"},
+                {"code": "96360", "description": "IV infusion, hydration, initial"},
+                {"code": "96361", "description": "IV infusion, hydration, additional hour"},
+                {"code": "96374", "description": "IV push, single or initial substance/drug"}
+            ],
+            EncounterType.VIRTUAL: [
+                {"code": "99421", "description": "Online digital E/M service, 5-10 minutes"},
+                {"code": "99422", "description": "Online digital E/M service, 11-20 minutes"},
+                {"code": "99423", "description": "Online digital E/M service, 21+ minutes"}
+            ],
+            EncounterType.HOME_HEALTH: [
+                {"code": "99347", "description": "Home visit, established patient"},
+                {"code": "99348", "description": "Home visit, established patient, moderate severity"},
+                {"code": "36415", "description": "Routine venipuncture"},
+                {"code": "97110", "description": "Therapeutic exercises"},
+                {"code": "97530", "description": "Therapeutic activities"},
+                {"code": "97112", "description": "Neuromuscular reeducation"}
+            ]
+        }
+        
+        # Common diagnoses by encounter type
+        self.diagnoses = {
+            EncounterType.INPATIENT: [
+                {"code": "I21.3", "description": "ST elevation (STEMI) myocardial infarction of unspecified site"},
+                {"code": "J18.9", "description": "Pneumonia, unspecified organism"},
+                {"code": "J44.1", "description": "Chronic obstructive pulmonary disease with (acute) exacerbation"},
+                {"code": "K92.2", "description": "Gastrointestinal hemorrhage, unspecified"},
+                {"code": "N17.9", "description": "Acute kidney failure, unspecified"},
+                {"code": "E11.9", "description": "Type 2 diabetes mellitus without complications"},
+                {"code": "I50.9", "description": "Heart failure, unspecified"},
+                {"code": "K85.9", "description": "Acute pancreatitis, unspecified"},
+                {"code": "A41.9", "description": "Sepsis, unspecified organism"},
+                {"code": "I63.9", "description": "Cerebral infarction, unspecified"}
+            ],
+            EncounterType.AMBULATORY: [
+                {"code": "I10", "description": "Essential (primary) hypertension"},
+                {"code": "E11.9", "description": "Type 2 diabetes mellitus without complications"},
+                {"code": "E78.5", "description": "Hyperlipidemia, unspecified"},
+                {"code": "M54.5", "description": "Low back pain"},
+                {"code": "J45.909", "description": "Unspecified asthma, uncomplicated"},
+                {"code": "F41.9", "description": "Anxiety disorder, unspecified"},
+                {"code": "F32.9", "description": "Major depressive disorder, single episode, unspecified"},
+                {"code": "M19.90", "description": "Unspecified osteoarthritis, unspecified site"},
+                {"code": "R53.83", "description": "Other fatigue"},
+                {"code": "Z00.00", "description": "Encounter for general adult medical examination without abnormal findings"}
+            ],
+            EncounterType.EMERGENCY: [
+                {"code": "R07.9", "description": "Chest pain, unspecified"},
+                {"code": "R10.9", "description": "Unspecified abdominal pain"},
+                {"code": "S06.0X0A", "description": "Concussion without loss of consciousness, initial encounter"},
+                {"code": "R50.9", "description": "Fever, unspecified"},
+                {"code": "J06.9", "description": "Acute upper respiratory infection, unspecified"},
+                {"code": "S61.419A", "description": "Laceration with foreign body of unspecified hand, initial encounter"},
+                {"code": "R11.2", "description": "Nausea with vomiting, unspecified"},
+                {"code": "R42", "description": "Dizziness and giddiness"},
+                {"code": "S93.401A", "description": "Sprain of unspecified ankle, initial encounter"},
+                {"code": "T14.90XA", "description": "Injury, unspecified, initial encounter"}
+            ],
+            EncounterType.OBSERVATION: [
+                {"code": "R07.9", "description": "Chest pain, unspecified"},
+                {"code": "R55", "description": "Syncope and collapse"},
+                {"code": "R10.9", "description": "Unspecified abdominal pain"},
+                {"code": "R42", "description": "Dizziness and giddiness"},
+                {"code": "G45.9", "description": "Transient cerebral ischemic attack, unspecified"},
+                {"code": "R11.2", "description": "Nausea with vomiting, unspecified"},
+                {"code": "J45.901", "description": "Unspecified asthma with (acute) exacerbation"},
+                {"code": "N23", "description": "Unspecified renal colic"},
+                {"code": "L03.90", "description": "Cellulitis, unspecified"}
+            ],
+            EncounterType.VIRTUAL: [
+                {"code": "J06.9", "description": "Acute upper respiratory infection, unspecified"},
+                {"code": "J01.90", "description": "Acute sinusitis, unspecified"},
+                {"code": "L30.9", "description": "Dermatitis, unspecified"},
+                {"code": "F41.9", "description": "Anxiety disorder, unspecified"},
+                {"code": "F32.9", "description": "Major depressive disorder, single episode, unspecified"},
+                {"code": "M54.5", "description": "Low back pain"},
+                {"code": "R51", "description": "Headache"},
+                {"code": "G47.00", "description": "Insomnia, unspecified"},
+                {"code": "N39.0", "description": "Urinary tract infection, site not specified"}
+            ],
+            EncounterType.HOME_HEALTH: [
+                {"code": "I50.9", "description": "Heart failure, unspecified"},
+                {"code": "I10", "description": "Essential (primary) hypertension"},
+                {"code": "E11.9", "description": "Type 2 diabetes mellitus without complications"},
+                {"code": "Z48.89", "description": "Encounter for other specified surgical aftercare"},
+                {"code": "Z51.89", "description": "Encounter for other specified aftercare"},
+                {"code": "M19.90", "description": "Unspecified osteoarthritis, unspecified site"},
+                {"code": "M54.5", "description": "Low back pain"},
+                {"code": "Z74.09", "description": "Other reduced mobility"},
+                {"code": "Z74.1", "description": "Need for assistance with personal care"}
+            ]
+        }
+        
         # Common assessment types and results
         self.assessments = {
             AssessmentType.VITAL_SIGNS: {
@@ -820,6 +950,11 @@ class ClinicalEncounterGenerator(BaseGenerator):
         elif encounter_type == EncounterType.OBSERVATION:
             return [NoteType.PROGRESS_NOTE, NoteType.DISCHARGE_SUMMARY]
         elif encounter_type == EncounterType.VIRTUAL:
+            return [NoteType.PROGRESS_NOTE]
+        elif encounter_type == EncounterType.HOME_HEALTH:
+            return [NoteType.PROGRESS_NOTE, NoteType.NURSING_NOTE]
+        else:
+            # Default case for any other encounter types
             return [NoteType.PROGRESS_NOTE]
     
     def _generate_services(self, encounter_id: str, encounter_type: EncounterType) -> List[Dict]:
