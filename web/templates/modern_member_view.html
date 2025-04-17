@@ -51,6 +51,9 @@
             <button class="nav-link" id="clinical-notes-tab" data-bs-toggle="tab" data-bs-target="#clinical-notes" type="button" role="tab" aria-controls="clinical-notes" aria-selected="false">Clinical Notes</button>
         </li>
         <li class="nav-item" role="presentation">
+            <button class="nav-link" id="clinical-encounters-tab" data-bs-toggle="tab" data-bs-target="#clinical-encounters" type="button" role="tab" aria-controls="clinical-encounters" aria-selected="false">Clinical Encounters</button>
+        </li>
+        <li class="nav-item" role="presentation">
             <button class="nav-link" id="care-plans-tab" data-bs-toggle="tab" data-bs-target="#care-plans" type="button" role="tab" aria-controls="care-plans" aria-selected="false">Care Plans</button>
         </li>
         <li class="nav-item" role="presentation">
@@ -136,6 +139,19 @@
                         <span class="visually-hidden">Loading...</span>
                     </div>
                     <p class="mt-2">Loading clinical notes data...</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Clinical Encounters Tab -->
+        <div class="tab-pane fade" id="clinical-encounters" role="tabpanel" aria-labelledby="clinical-encounters-tab">
+            <div id="clinical-encounters-content" class="mt-4">
+                <!-- Will be populated by JavaScript -->
+                <div class="text-center my-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading clinical encounters data...</p>
                 </div>
             </div>
         </div>
@@ -283,6 +299,26 @@
             </div>
             <div class="modal-body">
                 <div id="note-detail-content">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clinical Encounter Detail Modal -->
+<div class="modal fade" id="encounterDetailModal" tabindex="-1" aria-labelledby="encounterDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="encounterDetailModalLabel">Clinical Encounter Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="encounter-detail-content">
                     <!-- Will be populated by JavaScript -->
                 </div>
             </div>
